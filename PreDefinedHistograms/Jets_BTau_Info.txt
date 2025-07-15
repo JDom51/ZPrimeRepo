@@ -1,0 +1,12 @@
+{"PT of b Tagged Jets", "PT", "Jet_BTagPT", 200, 0, 200, "GeV"},
+    {"PT of Tau Tagged Jets", "PT", "Jet_TauTagPT", 200, 0, 200, "GeV"},
+    {"PT of not b or Tau Tagged Jets", "PT", "Jet_NotBTauTagPT", 60, -20, 40, "GeV"},
+    {"Inv Mass of b Jets", "IMass", "Jet_BTagMass", 40, 0, 20, "GeV", true},
+    {"Inv Mass of tau Jets", "IMass", "Jet_TauTagMass", 40, 0, 20, "GeV", true},
+    {"Inv Mass of neither b or tau Jets", "IMass", "Jet_NotBTauTagMass", 40, 0, 20, "GeV", true},
+    {"Number of b jets", "Number", "Jet_BNum", 10, 0, 10, "", true},
+    {"Number of tau jets", "Number", "Jet_TauNum", 10, 0, 10, "", true},
+    {"Number of neither jets", "Number", "Jet_NotBTauNum", 10, 0, 10, "", true},
+    {"Invariant Mass of Detected Particles", "IMass", "Particle.Mass", 20, 0, 20, "GeV", true},
+    {"Total Invariant Mass of Event Particles", "IMass", "Particle_TotInvMass", 20, 0, 20, "GeV", true},
+    {"Number of Jets", "Number", "Jet_Num", 12, 0, 12, "", true}
