@@ -52,7 +52,7 @@ vector<string> load_files()
   std::ifstream open_files{"OpenFiles.txt"};
   while(getline(open_files, file))
   {
-    files.push_back("DATA/" + file);
+    files.push_back("/gluster/data/atlas/jdombrowski/DATA/" + file);
   }
   return files;
 }
@@ -154,7 +154,7 @@ void Analyse(FrameAndData& fd)
 void GeneralAnalyser()
 {
   // Loading Info
-  string mode = "Delphes";
+  string mode{"Delphes"};
   vector<string> files = load_files();
   vector<string> plotting_columns{};
   vector<HistInfo> histograms{
