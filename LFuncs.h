@@ -110,7 +110,7 @@ namespace LFuncs
       tot_pz += pz;
     }
     return sqrt(pow(tot_e,2) - pow(tot_px, 2) - pow(tot_py, 2) - pow(tot_pz, 2));
-  };
+  }
 
 
   Float_t inv_mass_xyz(ROOT::VecOps::RVec<Float_t> E, ROOT::VecOps::RVec<Float_t> px, ROOT::VecOps::RVec<Float_t> py, ROOT::VecOps::RVec<Float_t> pz)
@@ -127,5 +127,32 @@ namespace LFuncs
       tot_pz += pz[i];
     }
     return sqrt(pow(tot_E,2) - pow(tot_px, 2) - pow(tot_py, 2) - pow(tot_pz, 2));
-  };
+  }
+  ROOT::VecOps::RVec<Float_t> get_px(ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi)
+  {
+    ROOT::VecOps::RVec<Float_t> px{ROOT::VecOps::RVec<Float_t>(pt.size(), 0.0f)};
+    for(int i{0}; i < pt.size(); i++)
+    {
+      px[i] = pt[i] * cos(phi[i]);
+    }
+    return px;
+  }
+  ROOT::VecOps::RVec<Float_t> get_py(ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi)
+  {
+    ROOT::VecOps::RVec<Float_t> py{ROOT::VecOps::RVec<Float_t>(pt.size(), 0.0f)};
+    for(int i{0}; i < pt.size(); i++)
+    {
+      py[i] = pt[i] * sin(phi[i]);
+    }
+    return py;
+  }
+  ROOT::VecOps::RVec<Float_t> get_pz(ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> eta)
+  {
+    ROOT::VecOps::RVec<Float_t> pz{ROOT::VecOps::RVec<Float_t>(pt.size(), 0.0f)};
+    for(int i{0}; i < pt.size(); i++)
+    {
+      pz[i] = pt[i] * sinh(eta[i]);
+    }
+    return pz;
+  }
 } // LFuncs
