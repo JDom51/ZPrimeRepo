@@ -26,6 +26,10 @@ struct FrameAndData
   void Define(string column_name, T lambda_func, vector<string> var_names){
     node = node.Define(column_name, lambda_func, var_names);
   }
+  template<typename Type> void Filter(Type func, vector<string> column_names)
+  {
+    node = node.Filter(func, column_names);
+  }
 };
 
 struct HistInfo
@@ -52,7 +56,7 @@ vector<string> load_files()
   std::ifstream open_files{"OpenFiles.txt"};
   while(getline(open_files, file))
   {
-    files.push_back("DATA/" + file);
+    files.push_back("/gluster/data/atlas/jdombrowski/DATA/" + file);
   }
   return files;
 }
@@ -72,7 +76,7 @@ void plot(FrameAndData& fd, vector<HistInfo> his)
     histograms[i]->GetXaxis()->SetTitle(x_title.str().c_str()); histograms[i]->GetYaxis()->SetTitle("Events");
     histograms[i]->GetXaxis()->CenterTitle(); histograms[i]->GetYaxis()->CenterTitle();
     histograms[i]->Draw();
-    std::stringstream save_name{}; save_name << "Histograms/" << his[i].name << ".png";
+    std::stringstream save_name{}; save_name << "/gluster/data/atlas/jdombrowski/Histograms/" << his[i].name << ".png";
     c.Print(save_name.str().c_str());
   }
 }
@@ -103,6 +107,9 @@ void pre_process_columns(FrameAndData& fd)
   fd.Define("Jet_TauTagEta", LFuncs::use_indicies, {"Jet.Eta", "Jet_TauTagIndicies"});
   fd.Define("Jet_TauTagPhi", LFuncs::use_indicies, {"Jet.Phi", "Jet_TauTagIndicies"});
   fd.Define("Jet_TauNum", LFuncs::get_size<unsigned int>, {"Jet_TauTagIndicies"});
+  fd.Define("Jet_TauTagPx", LFuncs::get_px, {"Jet.PT", "Jet.Phi"});
+  fd.Define("Jet_TauTagPy", LFuncs::get_py, {"Jet.PT", "Jet.Phi"});
+  fd.Define("Jet_TauTagPz", LFuncs::get_pz, {"Jet.PT", "Jet.Eta"});
   // Not B or Tau Jets
   fd.Define("Jet_NotBTauTagMass", LFuncs::use_neither_indicies, {"Jet.Mass", "Jet_BTagIndicies", "Jet_TauTagIndicies"});
   fd.Define("Jet_NotBTauTagPT", LFuncs::use_neither_indicies, {"Jet.PT", "Jet_BTagIndicies", "Jet_TauTagIndicies"});
@@ -141,12 +148,49 @@ void pre_process_columns(FrameAndData& fd)
   fd.Define("NeutralParticleEta", LFuncs::use_indicies, {"Particle.Eta", "NeutralParticleIndicies"});
   fd.Define("NeutralParticlePhi", LFuncs::use_indicies, {"Particle.Phi", "NeutralParticleIndicies"});
   fd.Define("NeutralParticleRapidity", LFuncs::use_indicies, {"Particle.Rapidity", "NeutralParticleIndicies"});
-
+  // MET
+  fd.Define("MET_Px", LFuncs::get_px, {"MissingET.MET", "MissingET.Phi"});
+  fd.Define("MET_Py", LFuncs::get_py, {"MissingET.MET", "MissingET.Phi"});
+  fd.Define("MET_Pz", LFuncs::get_pz, {"MissingET.MET", "MissingET.Eta"});
 }
 
 void Analyse(FrameAndData& fd)
 {
-
+  cout << fd.node.GetColumnType("MissingET.MET") << "\n";
+  auto size_of = [](ROOT::VecOps::RVec<unsigned int> tautag_indicies){return tautag_indicies.size() == 2;};
+  fd.Filter(size_of, {"Jet_TauTagIndicies"});
+  auto get_pt2 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e)
+  {
+    //ROOT::VecOps::RVec<Float_t> pt2{};
+    //pt2.push_back(met[0] * ( sin(phi_e[0]) - cos(phi_e) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi_e[0]) ) );
+    return met[0] * ( sin(phi_e[0]) - cos(phi_e) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi_e[0]) );
+  };
+  auto get_pt1 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, ROOT::VecOps::RVec<Float_t> pt2)
+  {
+    //ROOT::VecOps::RVec<Float_t> pt1{};
+    //pt1.push_back((met[0] * cos( phi_e[0] ) - pt2[0] * cos( phi[1] ) ) / ( cos( phi[0] ) ) );
+    return (met[0] * cos( phi_e[0] ) - pt2[0] * cos( phi[1] ) ) / ( cos( phi[0] ) );
+  };
+  auto get_met = [](ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, Float_t pt1, ROOT::VecOps::RVec<Float_t> pt2)
+  {
+    return ( pt1 * cos(phi[0]) + pt2[0] * cos(phi[1]) ) / cos(phi_e);
+  };
+  auto get_inv_mass = [](ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> eta)
+  {
+    return sqrt(2 * pt[0] * pt[1] * ( cosh(eta[0] - eta[1]) - cos(phi[0] - phi[1]) ) );
+  };
+  auto add = [](ROOT::VecOps::RVec<Float_t> pt, Float_t pt1, ROOT::VecOps::RVec<Float_t> pt2)
+  {
+    pt[0] += pt1;
+    pt[1] += pt2[0];
+    return pt;
+  };
+  fd.Define("Neutrino_PT2", get_pt2, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi"});
+  fd.Define("Neutrino_PT1", get_pt1, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT2"});
+  //fd.Define("MET_TEST", get_met, {"Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT1", "Neutrino_PT2"});
+  fd.Define("Jet_TauTagNeutrinoPT", add, {"Jet_TauTagPT", "Neutrino_PT1", "Neutrino_PT2"});
+  fd.Define("TauJetInvMass", get_inv_mass, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
+  fd.Define("TauJetInvMassWithNeutrino", get_inv_mass, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
 }
 
 // main
@@ -154,13 +198,26 @@ void Analyse(FrameAndData& fd)
 void GeneralAnalyser()
 {
   // Loading Info
-  string mode = "Delphes";
+  string mode{"Delphes"};
   vector<string> files = load_files();
   vector<string> plotting_columns{};
   // {HistName, Xaxis, VariableColumn, nbins, lbound, ubound, units, -0.5}
   vector<HistInfo> histograms{
-    {"Transverse Momentum of Electrons", "PT", "Electron.PT", 200, 0, 200, "GeV", true},
-    {"Transverse Momentum of Muons", "PT", "Muon.PT", 200, 0, 200, "GeV"},
+ /// {"PT of Tau Jets", "PT", "Jet_TauTagPT", 400, 0, 200, "GeV"},
+ /// {"Eta of Tau Jets", "Eta", "Jet_TauTagEta", 400, -4,4, ""},
+ /// {"Phi of Tau Jets", "Phi", "Jet_TauTagPhi", 400, -4, 4, "Rad"},
+ /// {"Missing Transverse Energy", "PT", "MissingET.MET", 400, 0, 200, "GeV"},
+ /// {"Missing Transvere Energy Phi", "Phi", "MissingET.Phi", 400, -4, 4, "Rad"},
+ /// {"Missing Transverse Energy Eta", "Eta", "MissingET.Eta", 400, -4, 4, ""},
+ /// {"METPx", "Px", "MET_Px", 200, 0, 200, "GeV"},
+ /// {"METPy", "Py", "MET_Py", 200, 0, 200, "GeV"},
+ /// {"METPz", "Pz", "MET_Pz", 200, 0, 200, "GeV"},
+ /// {"TauJetPx", "Px", "Jet_TauTagPx", 400, 0, 200, "GeV"},
+ /// {"TauJetPy", "Py", "Jet_TauTagPy", 400, 0, 200, "GeV"},
+ /// {"TauJetPz", "Pz", "Jet_TauTagPz", 400, 0, 200, "GeV"},
+ /// {"MET TEST", "PT", "MET_TEST", 400, 0, 200, "GeV"},
+    {"Inv Mass without Neutrinos", "IMass", "TauJetInvMass", 100, 0, 200, "GeV"},
+    {"Inv Mass with Neutrinos", "IMass", "TauJetInvMassWithNeutrino", 100, 0, 200, "GeV"}
   };
 
   // Analysis code
@@ -169,3 +226,4 @@ void GeneralAnalyser()
   Analyse(fd);
   plot(fd, histograms);
 }
+
