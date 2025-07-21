@@ -157,6 +157,7 @@ void GeneralAnalyser()
   string mode = "Delphes";
   vector<string> files = load_files();
   vector<string> plotting_columns{};
+  // {HistName, Xaxis, VariableColumn, nbins, lbound, ubound, units, -0.5}
   vector<HistInfo> histograms{
     {"Transverse Momentum of Electrons", "PT", "Electron.PT", 200, 0, 200, "GeV", true},
     {"Transverse Momentum of Muons", "PT", "Muon.PT", 200, 0, 200, "GeV"},

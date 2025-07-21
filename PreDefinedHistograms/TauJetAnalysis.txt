@@ -1,0 +1,6 @@
+  {"PT of Tau Jets", "PT", "Jet_TauTagPT", 400, 0, 200, "GeV"},
+  {"Eta of Tau Jets", "Eta", "Jet_TauTagEta", 40, -4,4, "Rad"},
+  {"Phi of Tau Jets", "Phi", "Jet_TauTagPhi, 40, -4, 4, "Rad"},
+  {"Missing Transverse Energy", "PT", "MissingET.MET", 400, 0, 200, "GeV"},
+  {"Missing Transvere Energy Phi", "Phi", "MissingET.Phi, 40, -4, 4, "Rad"},
+  {"Missing Transverse Energy Eta", "Eta", "MissingET.Eta", 40, -4, 4, "Rad"}
