@@ -152,6 +152,10 @@ void pre_process_columns(FrameAndData& fd)
   fd.Define("MET_Px", LFuncs::get_px, {"MissingET.MET", "MissingET.Phi"});
   fd.Define("MET_Py", LFuncs::get_py, {"MissingET.MET", "MissingET.Phi"});
   fd.Define("MET_Pz", LFuncs::get_pz, {"MissingET.MET", "MissingET.Eta"});
+  // Electron
+  fd.Define("Electron_Num", LFuncs::get_size<Float_t>, {"Electron.PT"});
+  // Muon
+  fd.Define("Muon_Num", LFuncs::get_size<Float_t>, {"Muon.PT"});
 }
 
 void Analyse(FrameAndData& fd)
@@ -185,12 +189,18 @@ void Analyse(FrameAndData& fd)
     pt[1] += pt2[0];
     return pt;
   };
+  auto filter_open_met = [](ROOT::VecOps::RVec<Float_t> met_eta, ROOT::VecOps::RVec<Float_t> tau_eta)
+  {
+    return abs(met_eta[0]) > abs(tau_eta[0]) && abs(met_eta[0]) > abs(tau_eta[1]);
+
+  };
   fd.Define("Neutrino_PT2", get_pt2, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi"});
   fd.Define("Neutrino_PT1", get_pt1, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT2"});
   //fd.Define("MET_TEST", get_met, {"Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT1", "Neutrino_PT2"});
   fd.Define("Jet_TauTagNeutrinoPT", add, {"Jet_TauTagPT", "Neutrino_PT1", "Neutrino_PT2"});
   fd.Define("TauJetInvMass", get_inv_mass, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
   fd.Define("TauJetInvMassWithNeutrino", get_inv_mass, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
+  fd.Filter(filter_open_met, {"MissingET.Eta", "Jet_TauTagEta"});
 }
 
 // main
@@ -201,23 +211,30 @@ void GeneralAnalyser()
   string mode{"Delphes"};
   vector<string> files = load_files();
   vector<string> plotting_columns{};
-  // {HistName, Xaxis, VariableColumn, nbins, lbound, ubound, units, -0.5}
   vector<HistInfo> histograms{
- /// {"PT of Tau Jets", "PT", "Jet_TauTagPT", 400, 0, 200, "GeV"},
- /// {"Eta of Tau Jets", "Eta", "Jet_TauTagEta", 400, -4,4, ""},
- /// {"Phi of Tau Jets", "Phi", "Jet_TauTagPhi", 400, -4, 4, "Rad"},
- /// {"Missing Transverse Energy", "PT", "MissingET.MET", 400, 0, 200, "GeV"},
- /// {"Missing Transvere Energy Phi", "Phi", "MissingET.Phi", 400, -4, 4, "Rad"},
- /// {"Missing Transverse Energy Eta", "Eta", "MissingET.Eta", 400, -4, 4, ""},
- /// {"METPx", "Px", "MET_Px", 200, 0, 200, "GeV"},
- /// {"METPy", "Py", "MET_Py", 200, 0, 200, "GeV"},
- /// {"METPz", "Pz", "MET_Pz", 200, 0, 200, "GeV"},
- /// {"TauJetPx", "Px", "Jet_TauTagPx", 400, 0, 200, "GeV"},
- /// {"TauJetPy", "Py", "Jet_TauTagPy", 400, 0, 200, "GeV"},
- /// {"TauJetPz", "Pz", "Jet_TauTagPz", 400, 0, 200, "GeV"},
- /// {"MET TEST", "PT", "MET_TEST", 400, 0, 200, "GeV"},
-    {"Inv Mass without Neutrinos", "IMass", "TauJetInvMass", 100, 0, 200, "GeV"},
-    {"Inv Mass with Neutrinos", "IMass", "TauJetInvMassWithNeutrino", 100, 0, 200, "GeV"}
+  {"PT of Tau Jets", "PT", "Jet_TauTagPT", 400, 0, 200, "GeV"},
+  {"Eta of Tau Jets", "Eta", "Jet_TauTagEta", 400, -4,4, ""},
+  {"Phi of Tau Jets", "Phi", "Jet_TauTagPhi", 400, -4, 4, "Rad"},
+  {"Missing Transverse Energy", "PT", "MissingET.MET", 400, 0, 200, "GeV"},
+  {"Missing Transvere Energy Phi", "Phi", "MissingET.Phi", 400, -4, 4, "Rad"},
+  {"Missing Transverse Energy Eta", "Eta", "MissingET.Eta", 400, -4, 4, ""},
+  {"METPx", "Px", "MET_Px", 200, 0, 200, "GeV"},
+  {"METPy", "Py", "MET_Py", 200, 0, 200, "GeV"},
+  {"METPz", "Pz", "MET_Pz", 200, 0, 200, "GeV"},
+  {"TauJetPx", "Px", "Jet_TauTagPx", 400, 0, 200, "GeV"},
+  {"TauJetPy", "Py", "Jet_TauTagPy", 400, 0, 200, "GeV"},
+  {"TauJetPz", "Pz", "Jet_TauTagPz", 400, 0, 200, "GeV"},
+  // {"MET TEST", "PT", "MET_TEST", 400, 0, 200, "GeV"},
+   {"Inv Mass without Neutrinos", "IMass", "TauJetInvMass", 100, 0, 200, "GeV"},
+   {"Inv Mass with Neutrinos", "IMass", "TauJetInvMassWithNeutrino", 100, 0, 200, "GeV"}
+  // {"Transverse Momentum of Electrons", "PT", "Electron.PT", 100, 0, 200, "GeV"},
+  // {"Transverse Momentum of Muons", "PT", "Muon.PT", 100, 0, 200, "GeV"},
+  // {"Number of Electrons", "Num", "Electron_Num", 10, 0, 10, "", true},
+  // {"Pseudorapidity of Electrons", "Eta", "Electron.Eta", 40, -4, 4, ""},
+  // {"Phi of Electrons", "Phi", "Electron.Phi", 40, -4, 4, ""},
+  // {"Number of Muons", "Num", "Muon_Num", 10, 0, 10, "", true},
+  // {"Pseudorapidity of Muons", "Eta", "Muon.Eta", 40, -4, 4, ""},
+  // {"Phi of Muon", "Phi", "Muon.Phi", 40, -4, 4, ""}
   };
 
   // Analysis code
@@ -226,4 +243,3 @@ void GeneralAnalyser()
   Analyse(fd);
   plot(fd, histograms);
 }
-
