@@ -167,40 +167,39 @@ void Analyse(FrameAndData& fd)
   {
     //ROOT::VecOps::RVec<Float_t> pt2{};
     //pt2.push_back(met[0] * ( sin(phi_e[0]) - cos(phi_e) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi_e[0]) ) );
-    return met[0] * ( sin(phi_e[0]) - cos(phi_e) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi_e[0]) );
+    return met[0] * ( sin(phi_e[0]) - cos(phi_e[0]) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi[0]) );
   };
-  auto get_pt1 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, ROOT::VecOps::RVec<Float_t> pt2)
+  auto get_pt1 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, Float_t pt2)
   {
     //ROOT::VecOps::RVec<Float_t> pt1{};
     //pt1.push_back((met[0] * cos( phi_e[0] ) - pt2[0] * cos( phi[1] ) ) / ( cos( phi[0] ) ) );
-    return (met[0] * cos( phi_e[0] ) - pt2[0] * cos( phi[1] ) ) / ( cos( phi[0] ) );
+    return (met[0] * cos( phi_e[0] ) - pt2 * cos( phi[1] ) ) / ( cos( phi[0] ) );
   };
-  auto get_met = [](ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, Float_t pt1, ROOT::VecOps::RVec<Float_t> pt2)
+  auto get_met = [](ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, Float_t pt1, Float_t pt2)
   {
-    return ( pt1 * cos(phi[0]) + pt2[0] * cos(phi[1]) ) / cos(phi_e);
+    return ( pt1 * cos(phi[0]) + pt2 * cos(phi[1]) ) / cos(phi_e[0]);
   };
   auto get_inv_mass = [](ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> eta)
   {
     return sqrt(2 * pt[0] * pt[1] * ( cosh(eta[0] - eta[1]) - cos(phi[0] - phi[1]) ) );
   };
-  auto add = [](ROOT::VecOps::RVec<Float_t> pt, Float_t pt1, ROOT::VecOps::RVec<Float_t> pt2)
+  auto add = [](ROOT::VecOps::RVec<Float_t> pt, Float_t pt1, Float_t pt2)
   {
     pt[0] += pt1;
-    pt[1] += pt2[0];
+    pt[1] += pt2;
     return pt;
   };
   auto filter_open_met = [](ROOT::VecOps::RVec<Float_t> met_eta, ROOT::VecOps::RVec<Float_t> tau_eta)
   {
     return abs(met_eta[0]) > abs(tau_eta[0]) && abs(met_eta[0]) > abs(tau_eta[1]);
-
   };
+  fd.Filter(filter_open_met, {"MissingET.Eta", "Jet_TauTagEta"});
   fd.Define("Neutrino_PT2", get_pt2, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi"});
   fd.Define("Neutrino_PT1", get_pt1, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT2"});
   //fd.Define("MET_TEST", get_met, {"Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT1", "Neutrino_PT2"});
   fd.Define("Jet_TauTagNeutrinoPT", add, {"Jet_TauTagPT", "Neutrino_PT1", "Neutrino_PT2"});
   fd.Define("TauJetInvMass", get_inv_mass, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
   fd.Define("TauJetInvMassWithNeutrino", get_inv_mass, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
-  fd.Filter(filter_open_met, {"MissingET.Eta", "Jet_TauTagEta"});
 }
 
 // main
@@ -217,7 +216,7 @@ void GeneralAnalyser()
   {"Phi of Tau Jets", "Phi", "Jet_TauTagPhi", 400, -4, 4, "Rad"},
   {"Missing Transverse Energy", "PT", "MissingET.MET", 400, 0, 200, "GeV"},
   {"Missing Transvere Energy Phi", "Phi", "MissingET.Phi", 400, -4, 4, "Rad"},
-  {"Missing Transverse Energy Eta", "Eta", "MissingET.Eta", 400, -4, 4, ""},
+  {"Missing Transverse Energy Eta", "Eta", "MissingET.Eta", 800, -20, 20, ""},
   {"METPx", "Px", "MET_Px", 200, 0, 200, "GeV"},
   {"METPy", "Py", "MET_Py", 200, 0, 200, "GeV"},
   {"METPz", "Pz", "MET_Pz", 200, 0, 200, "GeV"},
@@ -225,8 +224,8 @@ void GeneralAnalyser()
   {"TauJetPy", "Py", "Jet_TauTagPy", 400, 0, 200, "GeV"},
   {"TauJetPz", "Pz", "Jet_TauTagPz", 400, 0, 200, "GeV"},
   // {"MET TEST", "PT", "MET_TEST", 400, 0, 200, "GeV"},
-   {"Inv Mass without Neutrinos", "IMass", "TauJetInvMass", 100, 0, 200, "GeV"},
-   {"Inv Mass with Neutrinos", "IMass", "TauJetInvMassWithNeutrino", 100, 0, 200, "GeV"}
+   {"Inv Mass without Neutrinos", "IMass", "TauJetInvMass", 50, 0, 200, "GeV"},
+   {"Inv Mass with Neutrinos", "IMass", "TauJetInvMassWithNeutrino", 50, 0, 200, "GeV"}
   // {"Transverse Momentum of Electrons", "PT", "Electron.PT", 100, 0, 200, "GeV"},
   // {"Transverse Momentum of Muons", "PT", "Muon.PT", 100, 0, 200, "GeV"},
   // {"Number of Electrons", "Num", "Electron_Num", 10, 0, 10, "", true},
