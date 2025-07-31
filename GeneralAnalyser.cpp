@@ -163,17 +163,29 @@ void Analyse(FrameAndData& fd)
   cout << fd.node.GetColumnType("MissingET.MET") << "\n";
   auto size_of = [](ROOT::VecOps::RVec<unsigned int> tautag_indicies){return tautag_indicies.size() == 2;};
   fd.Filter(size_of, {"Jet_TauTagIndicies"});
-  auto get_pt2 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e)
+  auto get_pt2 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, ROOT::VecOps::RVec<Float_t> theta)
   {
     //ROOT::VecOps::RVec<Float_t> pt2{};
     //pt2.push_back(met[0] * ( sin(phi_e[0]) - cos(phi_e) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi_e[0]) ) );
-    return met[0] * ( sin(phi_e[0]) - cos(phi_e[0]) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi[0]) );
+    // return met[0] * ( sin(phi_e[0]) - cos(phi_e[0]) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi[0]) );
+    Float_t frac1 = met[0] * cos(phi_e[0]) / ( sin(theta[1]) * cos(phi[1]) );
+    Float_t frac2 = ( tan(phi_e[0]) - tan(phi[0]) ) / ( tan(phi[1]) - tan(phi[0]) );
+    return frac1 * frac2;
   };
-  auto get_pt1 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, Float_t pt2)
+  auto get_pt1 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, ROOT::VecOps::RVec<Float_t> theta)
   {
     //ROOT::VecOps::RVec<Float_t> pt1{};
     //pt1.push_back((met[0] * cos( phi_e[0] ) - pt2[0] * cos( phi[1] ) ) / ( cos( phi[0] ) ) );
-    return (met[0] * cos( phi_e[0] ) - pt2 * cos( phi[1] ) ) / ( cos( phi[0] ) );
+    //return (met[0] * cos( phi_e[0] ) - pt2 * cos( phi[1] ) ) / ( cos( phi[0] ) );
+    Float_t frac1 = met[0] * cos(phi_e[0]) / ( sin(theta[0]) * cos(phi[0]) );
+    Float_t frac2 = 1 - ( tan(phi_e[0]) - tan(phi[0]) ) / ( tan(phi[1]) - tan(phi[0]) );
+    return frac1 * frac2;
+  };
+  auto get_theta = [](ROOT::VecOps::RVec<Float_t> eta)
+  {
+    eta[0] = 2 * atan(exp(- eta[0]));      
+    eta[1] = 2 * atan(exp(- eta[1]));
+    return eta;
   };
   auto get_met = [](ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, Float_t pt1, Float_t pt2)
   {
@@ -183,21 +195,56 @@ void Analyse(FrameAndData& fd)
   {
     return sqrt(2 * pt[0] * pt[1] * ( cosh(eta[0] - eta[1]) - cos(phi[0] - phi[1]) ) );
   };
-  auto add = [](ROOT::VecOps::RVec<Float_t> pt, Float_t pt1, Float_t pt2)
+  auto add = [](ROOT::VecOps::RVec<Float_t> pt, Float_t x1, Float_t x2)
   {
-    pt[0] += pt1;
-    pt[1] += pt2;
+    pt[0] = pt[0]/x1;
+    pt[1] = pt[1]/x2;
     return pt;
   };
   auto filter_open_met = [](ROOT::VecOps::RVec<Float_t> met_eta, ROOT::VecOps::RVec<Float_t> tau_eta)
   {
     return abs(met_eta[0]) > abs(tau_eta[0]) && abs(met_eta[0]) > abs(tau_eta[1]);
   };
+  auto filter_phi = [](ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e)
+  {
+    if(phi[0] < phi[1]){return phi[0] < phi_e[0] && phi_e[0] < phi[1];}
+    else if(phi[0] > phi[1]){return phi[1] < phi_e[0] && phi_e[0] < phi[0];}
+    else{return phi[0] == phi_e[0];}
+  };
+  auto get_x2 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi_e, ROOT::VecOps::RVec<Float_t> phi)
+  {
+    // Float_t frac1 = (met[0] * cos(phi_e[0]) )/ (pt[1] * cos(phi[1]));
+    // Float_t frac2 = ( tan(phi_e[0]) - tan(phi[0]) ) / (tan(phi[1]) - tan(phi[0]));
+    Float_t frac1 = ( met[0] * sin(phi_e[0]) - met[0] * cos(phi_e[0]) * tan(phi[0]) ) / pt[1];
+    Float_t frac2 = 1 / ( sin(phi[1]) - cos(phi[1]) * tan(phi[0]) ); 
+      return 1 / (frac1 * frac2 + 1);
+  };
+  auto get_x1 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi_e, ROOT::VecOps::RVec<Float_t> phi)
+  {
+    Float_t frac1 = ( met[0] * cos(phi_e[0]) ) / ( pt[0] * cos(phi[0]) ); 
+    Float_t frac2 = 1 - ( tan(phi_e[0]) - tan(phi[0]) ) / ( tan(phi[1]) - tan(phi[0]) );
+    return 1 / (frac1 * frac2 + 1);
+  };
+  auto x_boundaries = [](Float_t x)
+  {
+    return 0 < x && x <= 1;
+  };
+  auto no_b2b = [](ROOT::VecOps::RVec<Float_t> phi)
+  {
+    return abs(cos(phi[0] - phi[1])) < 0.95;
+  };
   fd.Filter(filter_open_met, {"MissingET.Eta", "Jet_TauTagEta"});
-  fd.Define("Neutrino_PT2", get_pt2, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi"});
-  fd.Define("Neutrino_PT1", get_pt1, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT2"});
+  fd.Define("x2", get_x2, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
+  fd.Define("x1", get_x1, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
+  fd.Filter(x_boundaries, {"x2"});
+  fd.Filter(x_boundaries, {"x1"});
+  // fd.Filter(filter_phi, {"Jet_TauTagPhi", "MissingET.Phi"});
+  fd.Filter(no_b2b, {"Jet_TauTagPhi"});
+  fd.Define("NeutrinoTheta", get_theta, {"Jet_TauTagEta"});
+  fd.Define("Neutrino_PT2", get_pt2, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi", "NeutrinoTheta"});
+  fd.Define("Neutrino_PT1", get_pt1, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi", "NeutrinoTheta"});
   //fd.Define("MET_TEST", get_met, {"Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT1", "Neutrino_PT2"});
-  fd.Define("Jet_TauTagNeutrinoPT", add, {"Jet_TauTagPT", "Neutrino_PT1", "Neutrino_PT2"});
+  fd.Define("Jet_TauTagNeutrinoPT", add, {"Jet_TauTagPT", "x1", "x2"});
   fd.Define("TauJetInvMass", get_inv_mass, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
   fd.Define("TauJetInvMassWithNeutrino", get_inv_mass, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
 }
@@ -224,9 +271,13 @@ void GeneralAnalyser()
   {"TauJetPy", "Py", "Jet_TauTagPy", 400, 0, 200, "GeV"},
   {"TauJetPz", "Pz", "Jet_TauTagPz", 400, 0, 200, "GeV"},
   // {"MET TEST", "PT", "MET_TEST", 400, 0, 200, "GeV"},
+  {"Neutrino PT 1", "PT", "Neutrino_PT1", 300, -100, 200, "GeV"},
+  {"Neutrino PT 2", "PT", "Neutrino_PT2", 300, -100, 200, "GeV"},
+  // {"x2", "Fraction of PT", "x2", 100, -5, 5, ""},
+  // {"x1", "Fraction of PT", "x1", 100, -5, 5, ""},
    {"Inv Mass without Neutrinos", "IMass", "TauJetInvMass", 50, 0, 200, "GeV"},
    {"Inv Mass with Neutrinos", "IMass", "TauJetInvMassWithNeutrino", 50, 0, 200, "GeV"}
-  // {"Transverse Momentum of Electrons", "PT", "Electron.PT", 100, 0, 200, "GeV"},
+   // {"Transverse Momentum of Electrons", "PT", "Electron.PT", 100, 0, 200, "GeV"},
   // {"Transverse Momentum of Muons", "PT", "Muon.PT", 100, 0, 200, "GeV"},
   // {"Number of Electrons", "Num", "Electron_Num", 10, 0, 10, "", true},
   // {"Pseudorapidity of Electrons", "Eta", "Electron.Eta", 40, -4, 4, ""},
