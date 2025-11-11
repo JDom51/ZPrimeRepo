@@ -1,0 +1,16 @@
+{
+  "files.associations": {
+    "cmath": "cpp",
+    "algorithm": "cpp",
+    "format": "cpp",
+    "array": "cpp",
+    "string_view": "cpp",
+    "initializer_list": "cpp",
+    "ranges": "cpp",
+    "span": "cpp",
+    "string": "cpp",
+    "vector": "cpp",
+    "iosfwd": "cpp",
+    "iostream": "cpp"
+  }
+}

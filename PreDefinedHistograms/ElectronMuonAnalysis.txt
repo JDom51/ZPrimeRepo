@@ -1,0 +1,8 @@
+  {"Transverse Momentum of Electrons", "PT", "Electron.PT", 100, 0, 200, "GeV"},
+  {"Transverse Momentum of Muons", "PT", "Muon.PT", 100, 0, 200, "GeV"},
+  {"Number of Electrons", "Num", "Electron_Num", 10, 0, 10, "", true},
+  {"Pseudorapidity of Electrons", "Eta", "Electron.Eta", 40, -8, 8, ""},
+  {"Phi of Electrons", "Phi", "Electron.Phi", 40, -8, 8, ""},
+  {"Number of Muons", "Num", "Muon_Num", 10, 0, 10, "", true},
+  {"Pseudorapidity of Muons", "Eta", "Muon.Eta", 40, -8, 8, ""},
+  {"Phi of Muon", "Phi", "Muon.Phi", 40, -8, 8, ""}
