@@ -33,7 +33,7 @@ void DataBase::NoCut(DataStructs::FrameAndData&fd)
   auto at_least_two = [](ROOT::VecOps::RVec<Float_t> value){
     return value.size() >= 2;
   };
-  fd.Filter(at_least_two, {"Jet_TauTagPT"}, "at_least_two");
+  // fd.Filter(at_least_two, {"Jet_TauTagPT"}, "at_least_two");
 }
 
 void DataBase::Analyse(DataStructs::FrameAndData& fd)
@@ -195,6 +195,8 @@ void DataBase::TruthAnalysis(DataStructs::FrameAndData& fd){
 }
 void DataBase::GeneratorLevelTauAnalysis(DataStructs::FrameAndData& fd){
   // generator level tau analysis was purely on focused on the generator information of the taus and no reco level variables
+  fd.Define("GenTauInvMass", LFuncs::inv_mass_ml, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
+
 }
 void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   // selection cut was all about restricting the inv mass region and then figuring out what the optimal selection cut was
@@ -250,16 +252,25 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   // fd.Define("AngleBetweenMET", wraparound_fix, {"Jet_DTauTagPhi", "Jet_DTauTagPT", "MissingET.Phi", "MissingET.MET"});
   fd.Define("TauJetInvMass", LFuncs::inv_mass_ml, {"Jet_DTauTagPT", "Jet_DTauTagEta", "Jet_DTauTagPhi"});
   fd.Define("TauJetInvMassWithNeutrino", LFuncs::inv_mass_ml, {"Jet_DTauTagNeutrinoPT", "Jet_DTauTagPhi", "Jet_DTauTagEta"});
-  
+  fd.Define("GenTauInvMass", LFuncs::inv_mass_ml, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
+
+  // TRUTH JET DEFINITIONS.
+  fd.Define("TruthMatchDeltaPhiTRUTHJET", LFuncs::get_delta_phi, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchPhi"});
+  fd.Define("AngleBetweenMETTRUTHJET", LFuncs::met_jet_ang, {"MissingET.Phi", "Jet_TruthTauMatchPhi"});
+  fd.Define("Jet_TruthTauMatchNeutrinoPT", LFuncs::add_col_pt, {"Jet_TruthTauMatchPT", "NeutrinoPT1", "NeutrinoPT2"});
+  fd.Define("TauJetInvMassTRUTHJET", LFuncs::inv_mass_ml, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchEta", "Jet_TruthTauMatchPhi"});
+  fd.Define("TauJetInvMassWithNeutrinoTRUTHJET", LFuncs::inv_mass_ml, {"Jet_TruthTauMatchNeutrinoPT", "Jet_TruthTauMatchPhi", "Jet_TruthTauMatchEta"});
+
 
   
-  fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "METbetweenJets");
+  // fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "METbetweenJets");
   fd.Filter(SC::deltaRcut0p3, {"DeltaRJetTauSel"}, "DeltaRCut0p3");
-  fd.Filter(SC::pt_tau_cut, {"Jet_DTauTagPT"}, "jetptg20");
+  // fd.Filter(SC::pt_tau_cut, {"Jet_DTauTagPT"}, "jetptg20");
+  fd.Filter(SC::gen_inv_mass_g20, {"GenTauInvMass"}, "GenTauInvMassG20");
   // fd.Filter(SC::deltaRcut0p2, {"DeltaRJetTauSel"}, "DeltaRCut0p2");
   // fd.Filter(SC::delta_phi_1, {"TruthMatchDeltaPhi"}, "DeltaPhi1");
   // fd.Filter(SC::delta_phi_1p2, {"TruthMatchDeltaPhi"}, "DeltaPhi1p2");
-  fd.Filter(SC::delta_phi_2, {"TruthMatchDeltaPhi"}, "DeltaPhi2");
+  // fd.Filter(SC::delta_phi_2, {"TruthMatchDeltaPhi"}, "DeltaPhi2");
 
 
   // vector<vector<Integral<Float_t>>> inout = SCAlgo::get_integral<Float_t>(fd, "TruthMatchDeltaPhi", "TauJetInvMassWithNeutrino", SC::y_lt_x_inout, {0, 3.2}, 10);

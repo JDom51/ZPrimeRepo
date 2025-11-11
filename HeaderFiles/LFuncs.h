@@ -248,6 +248,8 @@ namespace LFuncs
   {
     Float_t minimum_value{10000};
     ROOT::VecOps::RVec<unsigned int> indicies{0, 0};
+    if(delta_r_1.size() == 1 || delta_r_2.size() == 1){return {};}
+
     for(int i{0}; i < delta_r_1.size(); i++)
     {
       for(int j{0}; j < delta_r_2.size(); j++)
@@ -261,7 +263,30 @@ namespace LFuncs
         }
       }
       // this line means that there is only 1 delta r for1 and 2 so there would only be a single 
-      if(delta_r_1.size() == 1 || delta_r_2.size() == 1){return {};}
+    }
+    // cout<<indicies[0] << " " << indicies[1]  << " " << delta_r_1 << " " << delta_r_2 << "\n";
+    if(indicies[0] == indicies[1]){return {};}
+    return indicies;
+  };
+  ROOT::VecOps::RVec<unsigned int> get_delta_r_indicies_truthjet(ROOT::VecOps::RVec<Float_t>& delta_r_1, ROOT::VecOps::RVec<float_t>& delta_r_2, ROOT::VecOps::RVec<Float_t>& tau_jet_weight)
+  {
+    Float_t minimum_value{10000};
+    ROOT::VecOps::RVec<unsigned int> indicies{0, 0};
+    if(delta_r_1.size() == 1 || delta_r_2.size() == 1){return {};}
+
+    for(int i{0}; i < delta_r_1.size(); i++)
+    {
+      for(int j{0}; j < delta_r_2.size(); j++)
+      {
+        if(i == j){continue;}
+        if(delta_r_1[i]/tau_jet_weight[i] + delta_r_2[j]/tau_jet_weight[j] < minimum_value)
+        {
+          minimum_value = delta_r_1[i] + delta_r_2[j];
+          indicies[0] = i;
+          indicies[1] = j;
+        }
+      }
+      // this line means that there is only 1 delta r for1 and 2 so there would only be a single 
     }
     // cout<<indicies[0] << " " << indicies[1]  << " " << delta_r_1 << " " << delta_r_2 << "\n";
     if(indicies[0] == indicies[1]){return {};}

@@ -186,8 +186,16 @@ void save_histograms(
     fd.Define("DeltaRJetTau2", LFuncs::get_delta_r_2, {"Tau_Eta", "Jet_TauTagEta", "Tau_Phi", "Jet_TauTagPhi"});
     fd.Define("DeltaRIndicies", LFuncs::get_delta_r_indicies, {"DeltaRJetTau1", "DeltaRJetTau2"});
     fd.Define("DeltaRJetTauSel", LFuncs::use_delr_indicies, {"DeltaRJetTau1", "DeltaRJetTau2", "DeltaRIndicies"});
+    fd.Define("DeltaR_Num", LFuncs::get_size<unsigned int>, {"DeltaRIndicies"});
+    // Delta R Tau to Generic Jet
+    fd.Define("DeltaRJetTau1TRUTHJET", LFuncs::get_delta_r_1, {"Tau_Eta", "Jet.Eta", "Tau_Phi", "Jet.Phi"});
+    fd.Define("DeltaRJetTau2TRUTHJET", LFuncs::get_delta_r_2, {"Tau_Eta", "Jet.Eta", "Tau_Phi", "Jet.Phi"});
+    fd.Define("DeltaRIndiciesTRUTHJET", LFuncs::get_delta_r_indicies, {"DeltaRJetTau1TRUTHJET", "DeltaRJetTau2TRUTHJET"});
+    fd.Define("DeltaRJetTauSelTRUTHJET", LFuncs::use_delr_indicies, {"DeltaRJetTau1TRUTHJET", "DeltaRJetTau2TRUTHJET", "DeltaRIndiciesTRUTHJET"});
+    fd.Define("DeltaR_NumTRUTHJET", LFuncs::get_size<unsigned int>, {"DeltaRIndiciesTRUTHJET"});
 
-    // Selected Jets DeltaR
+
+    // Selected TauTag Jets DeltaR
     fd.Define("Jet_DTauTagMass", LFuncs::use_indicies, {"Jet_TauTagMass", "DeltaRIndicies"});
     fd.Define("Jet_DTauTagPT", LFuncs::use_indicies, {"Jet_TauTagPT", "DeltaRIndicies"});
     fd.Define("Jet_DTauTagEta", LFuncs::use_indicies, {"Jet_TauTagEta", "DeltaRIndicies"});
@@ -197,6 +205,15 @@ void save_histograms(
     fd.Define("Jet_DTauTagPy", LFuncs::get_py, {"Jet_DTauTagPT", "Jet_DTauTagPhi"});
     fd.Define("Jet_DTauTagPz", LFuncs::get_pz, {"Jet_DTauTagPT", "Jet_DTauTagEta"});
 
+    // Truth Matched JET to Tau.
+    fd.Define("Jet_TruthTauMatchMass", LFuncs::use_indicies, {"Jet.Mass", "DeltaRIndiciesTRUTHJET"});
+    fd.Define("Jet_TruthTauMatchPT", LFuncs::use_indicies, {"Jet.PT", "DeltaRIndiciesTRUTHJET"});
+    fd.Define("Jet_TruthTauMatchEta", LFuncs::use_indicies, {"Jet.Eta", "DeltaRIndiciesTRUTHJET"});
+    fd.Define("Jet_TruthTauMatchPhi", LFuncs::use_indicies, {"Jet.Phi", "DeltaRIndiciesTRUTHJET"});
+    fd.Define("Jet_TruthTauMatch", LFuncs::get_size<unsigned int>, {"DeltaRIndiciesTRUTHJET"});
+    fd.Define("Jet_TruthTauMatchPx", LFuncs::get_px, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchPhi"});
+    fd.Define("Jet_TruthTauMatchPy", LFuncs::get_py, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchPhi"});
+    fd.Define("Jet_TruthTauMatchPz", LFuncs::get_pz, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchEta"});
     // - Positive
     // fd.Define("PositiveParticleMass", LFuncs::use_indicies, {"Particle.Mass", "PositiveParticleIndicies"});
     // fd.Define("PositiveParticlePx", LFuncs::use_indicies, {"Particle.Px", "PositiveParticleIndicies"});

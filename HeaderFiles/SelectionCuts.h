@@ -12,6 +12,9 @@ namespace SC
   bool met_angle_diff(Float_t angle_diff){
     return angle_diff < 0.002*pow(10,-3);
   }
+  bool gen_inv_mass_g20(Float_t mass){
+    return mass > 20;
+  }
   bool met_g_30(ROOT::VecOps::RVec<Float_t> met)
   {
     return met[0] > 30;
