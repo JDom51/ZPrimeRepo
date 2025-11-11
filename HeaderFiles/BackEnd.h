@@ -5,6 +5,8 @@
 #include<fstream>
 #include<iostream>
 #include<memory>
+#include <future> // for parallel execution
+
 
 #include"DataStructures.h"
 #include"LFuncs.h"
@@ -44,29 +46,64 @@ namespace BackEnd
       fd.Filter(sel_cut.selection_cut, sel_cut.variables, sel_cut.variables[0]);
     }
   }
-  void save_histograms(string outputFileName, vector<ROOT::RDF::RResultPtr<TH1D>>& histograms, vector<HistInfo>& hist_info)
-  {
-    std::stringstream directory{}; directory << "/gluster/data/atlas/jdombrowski/Histograms/" << outputFileName;
+  // void save_histograms(string outputFileName, vector<ROOT::RDF::RResultPtr<TH1D>>& histograms, vector<HistInfo>& hist_info)
+  // {
+    // std::stringstream directory{}; directory << "/gluster/data/atlas/jdombrowski/Histograms/" << outputFileName;
     // Save histograms
-    std::filesystem::create_directory(directory.str());
-    vector<std::unique_ptr<TCanvas>> cs{};
-    for(int i{0}; i < histograms.size(); i++)
-    {
-      cs.emplace_back(std::to_string(i), std::to_string(i));
-      cout<<"Drawing...\n";
-      std::stringstream x_title{}; x_title << hist_info[i].x_axis << " (" << hist_info[i].units << ")";
-      histograms[i]->GetXaxis()->SetTitle(x_title.str().c_str()); histograms[i]->GetYaxis()->SetTitle("Events");
-      histograms[i]->GetXaxis()->CenterTitle(); histograms[i]->GetYaxis()->CenterTitle();
-      histograms[i]->Draw();
+    // std::filesystem::create_directory(directory.str());
+    // map<int, std::unique_ptr<TCanvas>> cs{};
+    // for(int i{0}; i < histograms.size(); i++)
+    // {
+      // cs[i] = std::make_unique<TCanvas>();
+      // cout<<"Drawing...\n";
+      // std::stringstream x_title{}; x_title << hist_info[i].x_axis << " (" << hist_info[i].units << ")";
+      // histograms[i]->GetXaxis()->SetTitle(x_title.str().c_str()); histograms[i]->GetYaxis()->SetTitle("Events");
+      // histograms[i]->GetXaxis()->CenterTitle(); histograms[i]->GetYaxis()->CenterTitle();
+      // histograms[i]->Draw();
+    // }
+    // cout<<"Saving...\n";
+    // for(int i{0}; i < histograms.size(); i++){
+      // std::stringstream file_name{}; file_name << directory.str() << "/" << hist_info[i].name << ".png";
+      // cs[i]->Print(file_name.str().c_str());
+    // }
+  // }
+  // gptr  code 
+
+void save_histograms(
+    const std::string& outputFileName,
+    std::vector<ROOT::RDF::RResultPtr<TH1D>>& histograms,
+    std::vector<HistInfo>& hist_info)
+{
+    // Enable multi-threading (all available cores)
+
+    // Output ROOT file
+    std::filesystem::path dir = "/gluster/data/atlas/jdombrowski/Histograms";
+    std::filesystem::create_directories(dir);
+    std::string file_path = (dir / (outputFileName + ".root")).string();
+    TFile out_file(file_path.c_str(), "RECREATE");
+
+    // Materialize all histograms (compute them in parallel)
+    for (auto& hptr : histograms) {
+        hptr.GetValue(); // triggers computation
     }
-    cout<<"Saving...\n";
-    for(int i{0}; i < histograms.size(); i++){
-      std::stringstream file_name{}; file_name << directory.str() << "/" << hist_info[i].name << ".png";
-      cs[i]->Print(file_name.str().c_str());
+
+    // Write all histograms to file
+    for (size_t i = 0; i < histograms.size(); ++i) {
+        TH1D* h = histograms[i].GetPtr(); // get pointer
+        h->SetName(hist_info[i].name.c_str()); // optional rename
+        h->GetXaxis()->SetTitle((hist_info[i].x_axis + " (" + hist_info[i].units + ")").c_str());
+        h->GetYaxis()->SetTitle("Events");
+        h->Write(); // write to ROOT file
     }
-  }
+
+    out_file.Close();
+
+    std::cout << "Saved " << histograms.size() << " histograms to " << file_path << std::endl;
+}
+
 
   void save_hist_info(string outputFileName, const vector<HistInfo>& histograms){
+    ROOT::EnableImplicitMT();
     std::stringstream complete_file_name{}; complete_file_name << "/gluster/data/atlas/jdombrowski/HistogramInfo/" << outputFileName << ".txt";
     std::ofstream histograms_file{complete_file_name.str()};
     std::stringstream save_stringstream{};

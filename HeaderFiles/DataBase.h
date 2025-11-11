@@ -8,6 +8,7 @@ using DataStructs::HistInfo;
 using SC::size_2;
 
 namespace DataBase{
+  void NoCut(FrameAndData& fd);
   void Analyse(FrameAndData& fd);
   void TruthAnalysis(FrameAndData& fd);
   void GeneratorLevelTauAnalysis(FrameAndData& fd);
@@ -17,6 +18,11 @@ namespace DataBase{
 
 
   map<string, vector<string>> loadable_files{
+    {"NoCut", {"jdombrowski,pptata_exh_run_01", "jdombrowski,pptata_exh_run_02",
+  "jdombrowski,pptata_exh_run_03", "jdombrowski,pptata_exh_run_04",
+  "jdombrowski,pptata_exh_run_05","jdombrowski,pptata_exh_run_06",
+  "jdombrowski,pptata_exh_run_07","jdombrowski,pptata_exh_run_08",
+  "jdombrowski,pptata_exh_run_09","jdombrowski,pptata_exh_run_10"}},
   {"RecoLevel", {"jdombrowski,pptata_exh_run_01", "jdombrowski,pptata_exh_run_02",
   "jdombrowski,pptata_exh_run_03", "jdombrowski,pptata_exh_run_04",
   "jdombrowski,pptata_exh_run_05","jdombrowski,pptata_exh_run_06",
@@ -43,6 +49,7 @@ namespace DataBase{
       "jdombrowski,ppzttee_run_10"}}
   };
   map<string, AnalysisFunc> analysis_funcs{
+    {"NoCut", *NoCut},
     {"RecoLevel", *Analyse},
     {"Gen+RecoLevel", *TruthAnalysis},
     {"GenLevel", *GeneratorLevelTauAnalysis},
@@ -51,6 +58,7 @@ namespace DataBase{
   };
 
   std::map<string, vector<DataStructs::SelectionCut>> broad_cuts{
+    {"NoCut", {}},
     {"RecoLevel", {{size_2, {"Jet_TauTagIndicies"}}}},
     {"Gen+RecoLevel", {{size_2, {"DeltaRIndicies"}}}},
     {"SelectionCut", {{size_2, {"DeltaRIndicies"}}}},
@@ -60,6 +68,7 @@ namespace DataBase{
 
 
   map<string, string> fnames{
+    {"NoCut", "NoCut"},
     {"RecoLevel", "Ztata Reco"},
     {"Gen+RecoLevel", "Ztata Gen+Reco"},
     {"SelectionCut", "Selcut"},
@@ -69,6 +78,21 @@ namespace DataBase{
 
 
   map<string, vector<HistInfo>> histograms{
+    {"NoCut", {{"Number of Jets", "Number", "Jet_Num", 10, 0, 10, "", true},
+              {"MissingET", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
+              {"Number Of BJets", "Number", "Jet_BNum", 10, 0, 10, "", true},
+              {"TauJetPT", "PT", "Jet_TauTagPT", 200, 0, 200, "GeV"},
+              {"TauPT", "PT", "Tau_PT", 200, 0, 200, "GeV"},
+              {"Number of Tau Jets", "Number", "Jet_TauNum", 10, 0, 10, "", true}}},
+    {"RecoLevel", {{"MET", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
+                   {"Inv Mass without Neutrinos", "IMass", "TauJetInvMass", 200, 0, 200, "GeV"},
+                   {"Neutrino PT1", "PT", "Neutrino_PT1", 200, 0, 200, "GeV"},
+                   {"Neutrino PT2", "PT", "Neutrino_PT2", 200, 0, 200, "GeV"},
+                   {"Inv Mass with Neutrinos", "IMass", "TauJetInvMassWithNeutrino", 200, 0, 200, "GeV"},
+                   {"Number of Jets", "Num", "Jet_Num", 10, 0, 10, "", true},
+                   {"Number of B Jets", "Num", "Jet_BNum", 10, 0, 10, "", true},
+                  {"Angle diff between met and jets", "$\\Delta \\phi$", "AngleBetweenMET", 200, 0, 4, "rad"}}},
+
     {"Gen+RecoLevel", {
       // {"Number of Jets", "Jet Num", "Jet_Num", 7, 0, 7, "", true},
       {"MET of Tau", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
@@ -89,12 +113,12 @@ namespace DataBase{
     }},
     {"SelectionCut",{
 {"MET of Tau", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
-      {"Delta R of Tau and Selected Tau Jets", "Delta R", "DeltaRJetTauSel", 400, 0, 0.1, ""},
+      {"Delta R of Tau and Selected Tau Jets", "Delta R", "DeltaRJetTauSel", 400, 0, 1, ""},
       // {"Delta Phi of Tau Leptons", "\\Delta\\Phi", "DeltaPhiGenTau", 100, -0.5, 4, "rad"},
       {"Delta Phi of Truth Matched Jets", "\\Delta\\Phi", "TruthMatchDeltaPhi", 100, -0.5, 4, "rad"},
       // {"Invariant Mass of the truth Taus system0-50", "IMass", "TruthTauInvMass", 100, 0, 50, "GeV"},
       // {"Invariant Mass of the truth Taus system0-200", "IMass", "TruthTauInvMass", 100, 0, 200, "GeV"},
-      // {"PT of Tau Leptons", "Tau PT", "Tau_PT", 800, -200, 200, "GeV"},
+      {"PT of Tau Leptons", "Tau PT", "Tau_PT", 800, -200, 200, "GeV"},
       {"Neutrino pt 1", "Neutrino Pt", "NeutrinoPT1", 800, -200, 200, "GeV"},
       {"Neutrino pt 2", "Neutrino Pt", "NeutrinoPT2", 800, -200, 200, "GeV"},
       {"Inv Mass without Neutrinos", "IMass", "TauJetInvMass", 50, 0, 200, "GeV   "},

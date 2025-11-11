@@ -45,14 +45,14 @@ def plot_all(data_dict):
 
 def main():
   data_dict = {
-    "DeltaPhiIn DeltaRIndicies METbetweenJets DeltaRCut0p15" : [[], []],
-    "DeltaPhiOut DeltaRIndicies METbetweenJets DeltaRCut0p15": [[], []]
+    "DeltaPhiIn DeltaRIndicies METbetweenJets DeltaRCut0p2" : [[], []],
+    "DeltaPhiOut DeltaRIndicies METbetweenJets DeltaRCut0p2": [[], []]
   }
   load_dict(data_dict)
 
-  get_sig(data_dict, "DeltaPhiIn DeltaRIndicies METbetweenJets DeltaRCut0p15", "DeltaPhiOut DeltaRIndicies METbetweenJets DeltaRCut0p15")
-  plot_all(data_dict)
-  # plot(data_dict["DeltaPhiIn DeltaRIndicies METbetweenJets DeltaRCut0p15 significance"], "sig")
+  get_sig(data_dict, *data_dict.keys())
+  # plot_all(data_dict)
+  plot(data_dict["DeltaPhiIn DeltaRIndicies METbetweenJets DeltaRCut0p2 significance"], "sig")
   return 0;
 
 if __name__ == "__main__":

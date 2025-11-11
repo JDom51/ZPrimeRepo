@@ -42,10 +42,17 @@ namespace SC
   bool jet_number_cut(int size){
     return size > 4;
   }
-  bool  deltaRcut(ROOT::VecOps::RVec<Float_t> DeltaR){
+  bool  deltaRcut0p2(ROOT::VecOps::RVec<Float_t> DeltaR){
     bool result{DeltaR.size() != 0};
     for(auto DR : DeltaR){
-      result *= DR  < 0.15;
+      result *= DR  < 0.2;
+    }
+    return result;
+  }
+  bool  deltaRcut0p3(ROOT::VecOps::RVec<Float_t> DeltaR){
+    bool result{DeltaR.size() != 0};
+    for(auto DR : DeltaR){
+      result *= DR  < 0.3;
     }
     return result;
   }

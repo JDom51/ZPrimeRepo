@@ -232,7 +232,6 @@ namespace LFuncs
     Float_t taumet1 = get_delta_phi_special(met_phi[0], tau_phi[0]);
     Float_t taumet2 = get_delta_phi_special(met_phi[0], tau_phi[1]);
     Float_t tautau12 = get_delta_phi_special(tau_phi[0], tau_phi[1]);
-    cout << taumet1 << " " << taumet2 << " "<< tautau12<<"\n";
     return abs(taumet1 + taumet2 - tautau12); 
   }
   ROOT::VecOps::RVec<Float_t> get_delta_r_2(ROOT::VecOps::RVec<Float_t> eta_tau, ROOT::VecOps::RVec<Float_t> eta_jet, ROOT::VecOps::RVec<Float_t> phi_tau, ROOT::VecOps::RVec<Float_t> phi_jet)

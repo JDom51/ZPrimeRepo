@@ -20,12 +20,21 @@ using std::vector;
 using std::map;
 
 gStyle->SetOptStat(111111);
+ROOT::EnableImplicitMT();
 
 // structs
 
 
 // funcs
 
+
+void DataBase::NoCut(DataStructs::FrameAndData&fd)
+{
+  auto at_least_two = [](ROOT::VecOps::RVec<Float_t> value){
+    return value.size() >= 2;
+  };
+  fd.Filter(at_least_two, {"Jet_TauTagPT"}, "at_least_two");
+}
 
 void DataBase::Analyse(DataStructs::FrameAndData& fd)
 {
@@ -156,7 +165,7 @@ void DataBase::Analyse(DataStructs::FrameAndData& fd)
 
   // fd.Filter(size_of, {"Jet_TauTagIndicies"});
   
-  // // fd.Filter(filter_open_met, {"MissingET.Eta", "Jet_TauTagEta"});
+   // fd.Filter(filter_open_met, {"MissingET.Eta", "Jet_TauTagEta"});
   // // fd.Define("x2", get_x2, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
   // // fd.Define("x1", get_x1, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
   // // fd.Filter(x_boundaries, {"x2"});
@@ -165,15 +174,17 @@ void DataBase::Analyse(DataStructs::FrameAndData& fd)
   // // fd.Filter(my_way, {"Jet_TauTagPhi"});
   // // fd.Filter(no_b2b, {"Jet_TauTagPhi"});
   // // fd.Define("NeutrinoTheta", get_theta, {"Jet_TauTagEta"});
-  // fd.Define("AngleBetween", get_angle_between, {"DJet_TauTagPx", "DJet_TauTagPy", "DcJet_TauTagPz"});
-  // fd.Define("Neutrino_PT2", get_pt2, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi"});
-  // fd.Define("Neutrino_PT1", get_pt1, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT2"});
-  // fd.Filter(wraparound_fix, {"Jet_TauTagPhi", "Jet_TauTagEta", "Jet_TauTagPT", "MissingET.Phi", "MissingET.Eta", "MissingET.MET"});
-  // // fd.Filter(greater_zero, {"Neutrino_PT1", "Neutrino_PT2"});
-  // //fd.Define("MET_TEST", get_met, {"Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT1", "Neutrino_PT2"});
-  // fd.Define("Jet_TauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_TauTagPT", "Neutrino_PT1", "Neutrino_PT2"});
-  // fd.Define("TauJetInvMass", get_inv_mass, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
-  // fd.Define("TauJetInvMassWithNeutrino", get_inv_mass, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
+  fd.Define("AngleBetweenMET", LFuncs::met_jet_ang, {"MissingET.Phi", "Jet_DTauTagPhi"});
+  fd.Define("Neutrino_PT2", LFuncs::get_col_neutrinopt2, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi"});
+  fd.Define("Neutrino_PT1", LFuncs::get_col_neutrinopt1, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT2"});
+  // fd.Filter(greater_zero, {"Neutrino_PT1", "Neutrino_PT2"});
+  //fd.Define("MET_TEST", get_met, {"Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT1", "Neutrino_PT2"});
+  fd.Define("Jet_TauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_TauTagPT", "Neutrino_PT1", "Neutrino_PT2"});
+  fd.Define("TauJetInvMass", LFuncs::inv_mass_ml, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
+  fd.Define("TauJetInvMassWithNeutrino", LFuncs::inv_mass_ml, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
+
+  fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "AngleMET2times10to-6");
+
 
   // // fd.Filter(pid_check, {"Particle.PID"});
 }
@@ -213,19 +224,43 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
     return abs(jet_met_1_angle + jet_met_2_angle - jet_angle );
   };
 
+  // fd.Define("NeutrinoPT2", LFuncs::get_co/ // fd.Filter(filter_open_met, {"MissingET.Eta", "Jet_TauTagEta"});
+  // // fd.Define("x2", get_x2, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
+  // // fd.Define("x1", get_x1, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
+  // // fd.Filter(x_boundaries, {"x2"});
+  // // fd.Filter(x_boundaries, {"x1"});
+  // // fd.Filter(filter_phi, {"Jet_TauTagPhi", "MissingET.Phi"});
+  // // fd.Filter(my_way, {"Jet_TauTagPhi"});
+  // // fd.Filter(no_b2b, {"Jet_TauTagPhi"});
+  // // fd.Define("NeutrinoTheta", get_theta, {"Jet_TauTagEta"});
+  // fd.Define("AngleBetween", get_angle_between, {"DJet_TauTagPx", "DJet_TauTagPy", "DcJet_TauTagPz"});
+  // fd.Define("Neutrino_PT2", get_pt2, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi"});
+  // fd.Define("Neutrino_PT1", get_pt1, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT2"});
+  // fd.Filter(wraparound_fix, {"Jet_TauTagPhi", "Jet_TauTagEta", "Jet_TauTagPT", "MissingET.Phi", "MissingET.Eta", "MissingET.MET"});
+  // // fd.Filter(greater_zero, {"Neutrino_PT1", "Neutrino_PT2"});
+  // //fd.Define("MET_TEST", get_met, {"Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT1", "Neutrino_PT2"});
+  // fd.Define("Jet_TauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_TauTagPT", "Neutrino_PT1", "Neutrino_PT2"});
+  // fd.Define("TauJetInvMass", get_inv_mass, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
+  // fd.Define("TauJetInvMassWithNeutrino", get_inv_mass, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});l_neutrinopt2, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi"});
   fd.Define("NeutrinoPT2", LFuncs::get_col_neutrinopt2, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi"});
   fd.Define("NeutrinoPT1", LFuncs::get_col_neutrinopt1, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi", "NeutrinoPT2"});
   fd.Define("Jet_DTauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_DTauTagPT", "NeutrinoPT1", "NeutrinoPT2"});
   fd.Define("TruthMatchDeltaPhi", LFuncs::get_delta_phi, {"Jet_DTauTagPT", "Jet_DTauTagPhi"});
-  // fd.Define("AngleBetweenMET", LFuncs::met_jet_ang, {"MissingET.Phi", "Jet_DTauTagPhi"});
-  fd.Define("AngleBetweenMET", wraparound_fix, {"Jet_DTauTagPhi", "Jet_DTauTagPT", "MissingET.Phi", "MissingET.MET"});
+  fd.Define("AngleBetweenMET", LFuncs::met_jet_ang, {"MissingET.Phi", "Jet_DTauTagPhi"});
+  // fd.Define("AngleBetweenMET", wraparound_fix, {"Jet_DTauTagPhi", "Jet_DTauTagPT", "MissingET.Phi", "MissingET.MET"});
   fd.Define("TauJetInvMass", LFuncs::inv_mass_ml, {"Jet_DTauTagPT", "Jet_DTauTagEta", "Jet_DTauTagPhi"});
   fd.Define("TauJetInvMassWithNeutrino", LFuncs::inv_mass_ml, {"Jet_DTauTagNeutrinoPT", "Jet_DTauTagPhi", "Jet_DTauTagEta"});
-  // fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "METbetweenJets");
-  // fd.Filter(SC::deltaRcut, {"DeltaRJetTauSel"}, "DeltaRCut0p15");
+  
+
+  
+  fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "METbetweenJets");
+  fd.Filter(SC::deltaRcut0p3, {"DeltaRJetTauSel"}, "DeltaRCut0p3");
+  fd.Filter(SC::pt_tau_cut, {"Jet_DTauTagPT"}, "jetptg20");
+  // fd.Filter(SC::deltaRcut0p2, {"DeltaRJetTauSel"}, "DeltaRCut0p2");
   // fd.Filter(SC::delta_phi_1, {"TruthMatchDeltaPhi"}, "DeltaPhi1");
   // fd.Filter(SC::delta_phi_1p2, {"TruthMatchDeltaPhi"}, "DeltaPhi1p2");
-  // fd.Filter(SC::delta_phi_2, {"TruthMatchDeltaPhi"}, "DeltaPhi2");
+  fd.Filter(SC::delta_phi_2, {"TruthMatchDeltaPhi"}, "DeltaPhi2");
+
 
   // vector<vector<Integral<Float_t>>> inout = SCAlgo::get_integral<Float_t>(fd, "TruthMatchDeltaPhi", "TauJetInvMassWithNeutrino", SC::y_lt_x_inout, {0, 3.2}, 10);
   // BackEnd::serialise_integral(inout[0], "DeltaPhiIn" + fd.save_string);
