@@ -41,6 +41,14 @@ namespace LFuncs
   {
     return -1;
   }
+
+  ROOT::VecOps::RVec<Float_t> get_alpha(ROOT::VecOps::RVec<Float_t> etas){
+    ROOT::VecOps::RVec<Float_t> alpha{vector<Float_t>(etas.size())};
+    for(int i{0}; i < etas.size(); i++){
+      alpha[i] = atan(1/sinh(etas[i]));
+    }
+    return alpha;
+  }
   ROOT::VecOps::RVec<unsigned int> get_indicies_int(ROOT::VecOps::RVec<int> int_vec, int number)
   {
     ROOT::VecOps::RVec<unsigned int> indicies{};
@@ -243,6 +251,9 @@ namespace LFuncs
       delta_r.push_back( sqrt( pow( eta_tau[1] - eta_jet[j] ,2) + pow( get_delta_phi_special(phi_tau[1], phi_jet[j]) , 2) ) );
     }
     return delta_r;
+  }
+  Float_t get_DeltaR(ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> eta){
+    return sqrt(pow(phi[0] - phi[1], 2) + pow(eta[0] - eta[1], 2));
   }
   ROOT::VecOps::RVec<unsigned int> get_delta_r_indicies(ROOT::VecOps::RVec<Float_t>& delta_r_1, ROOT::VecOps::RVec<float_t>& delta_r_2)
   {

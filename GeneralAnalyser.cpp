@@ -182,8 +182,9 @@ void DataBase::Analyse(DataStructs::FrameAndData& fd)
   fd.Define("Jet_TauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_TauTagPT", "Neutrino_PT1", "Neutrino_PT2"});
   fd.Define("TauJetInvMass", LFuncs::inv_mass_ml, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
   fd.Define("TauJetInvMassWithNeutrino", LFuncs::inv_mass_ml, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
+  fd.Define("TauJetDeltaR", LFuncs::get_DeltaR, {"Jet_TauTagPhi", "Jet_TauTagEta"});
 
-  fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "AngleMET2times10to-6");
+  // fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "AngleMET2times10to-6");
 
 
   // // fd.Filter(pid_check, {"Particle.PID"});
@@ -244,6 +245,7 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   // fd.Define("Jet_TauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_TauTagPT", "Neutrino_PT1", "Neutrino_PT2"});
   // fd.Define("TauJetInvMass", get_inv_mass, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
   // fd.Define("TauJetInvMassWithNeutrino", get_inv_mass, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});l_neutrinopt2, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi"});
+  
   fd.Define("NeutrinoPT2", LFuncs::get_col_neutrinopt2, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi"});
   fd.Define("NeutrinoPT1", LFuncs::get_col_neutrinopt1, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi", "NeutrinoPT2"});
   fd.Define("Jet_DTauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_DTauTagPT", "NeutrinoPT1", "NeutrinoPT2"});
@@ -253,20 +255,22 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   fd.Define("TauJetInvMass", LFuncs::inv_mass_ml, {"Jet_DTauTagPT", "Jet_DTauTagEta", "Jet_DTauTagPhi"});
   fd.Define("TauJetInvMassWithNeutrino", LFuncs::inv_mass_ml, {"Jet_DTauTagNeutrinoPT", "Jet_DTauTagPhi", "Jet_DTauTagEta"});
   fd.Define("GenTauInvMass", LFuncs::inv_mass_ml, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
-
+  fd.Define("GenTauDeltaR", LFuncs::get_DeltaR, {"Tau_Phi", "Tau_Eta"});
+  fd.Define("TauJetDeltaR", LFuncs::get_DeltaR, {"Jet_DTauTagPhi", "Jet_DTauTagEta"});
+  // fd.Define("TauTagDeltaR", LFuncs::get_DeltaR, {"Jet_TauTagPhi", "Jet_TauTagEta"});
   // TRUTH JET DEFINITIONS.
-  fd.Define("TruthMatchDeltaPhiTRUTHJET", LFuncs::get_delta_phi, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchPhi"});
-  fd.Define("AngleBetweenMETTRUTHJET", LFuncs::met_jet_ang, {"MissingET.Phi", "Jet_TruthTauMatchPhi"});
-  fd.Define("Jet_TruthTauMatchNeutrinoPT", LFuncs::add_col_pt, {"Jet_TruthTauMatchPT", "NeutrinoPT1", "NeutrinoPT2"});
-  fd.Define("TauJetInvMassTRUTHJET", LFuncs::inv_mass_ml, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchEta", "Jet_TruthTauMatchPhi"});
-  fd.Define("TauJetInvMassWithNeutrinoTRUTHJET", LFuncs::inv_mass_ml, {"Jet_TruthTauMatchNeutrinoPT", "Jet_TruthTauMatchPhi", "Jet_TruthTauMatchEta"});
+  // fd.Define("TruthMatchDeltaPhiTRUTHJET", LFuncs::get_delta_phi, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchPhi"});
+  // fd.Define("AngleBetweenMETTRUTHJET", LFuncs::met_jet_ang, {"MissingET.Phi", "Jet_TruthTauMatchPhi"});
+  // fd.Define("Jet_TruthTauMatchNeutrinoPT", LFuncs::add_col_pt, {"Jet_TruthTauMatchPT", "NeutrinoPT1", "NeutrinoPT2"});
+  // fd.Define("TauJetInvMassTRUTHJET", LFuncs::inv_mass_ml, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchEta", "Jet_TruthTauMatchPhi"});
+  // fd.Define("TauJetInvMassWithNeutrinoTRUTHJET", LFuncs::inv_mass_ml, {"Jet_TruthTauMatchNeutrinoPT", "Jet_TruthTauMatchPhi", "Jet_TruthTauMatchEta"});
 
 
   
   // fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "METbetweenJets");
-  fd.Filter(SC::deltaRcut0p3, {"DeltaRJetTauSel"}, "DeltaRCut0p3");
+  // fd.Filter(SC::deltaRcut0p3, {"DeltaRJetTauSel"}, "DeltaRCut0p3");
   // fd.Filter(SC::pt_tau_cut, {"Jet_DTauTagPT"}, "jetptg20");
-  fd.Filter(SC::gen_inv_mass_g20, {"GenTauInvMass"}, "GenTauInvMassG20");
+  // fd.Filter(SC::gen_inv_mass_g20, {"GenTauInvMass"}, "GenTauInvMassG20");
   // fd.Filter(SC::deltaRcut0p2, {"DeltaRJetTauSel"}, "DeltaRCut0p2");
   // fd.Filter(SC::delta_phi_1, {"TruthMatchDeltaPhi"}, "DeltaPhi1");
   // fd.Filter(SC::delta_phi_1p2, {"TruthMatchDeltaPhi"}, "DeltaPhi1p2");
@@ -282,11 +286,11 @@ void DataBase::EAnalysis(DataStructs::FrameAndData& fd){
 
 }
 
-void GeneralAnalyser()
-{
-  // Loading Info
-  string mode{"Delphes"};
-  string analysis_mode{"SelectionCut"};
+void DataBase::MomentumTest(DataStructs::FrameAndData& fd){
+  fd.Define("GenTauInvMass", LFuncs::inv_mass_ml, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
+}
+
+void analysis_procedure(string analysis_mode, string mode){
   vector<string> files = BackEnd::load_files(analysis_mode);
   string outputFileName = DataBase::fnames[analysis_mode];
   // HistInfo: {name of hist, x axis title, Column name, nbins, lbound, ubound, units, offset by .5}
@@ -303,4 +307,15 @@ void GeneralAnalyser()
   cout<<"Plotting\n";
   BackEnd::plot(outputFileName + fd.save_string, fd, DataBase::histograms[analysis_mode]);
   BackEnd::save_hist_info(outputFileName, DataBase::histograms[analysis_mode]);
+}
+
+void GeneralAnalyser()
+{
+  // Loading Info
+  string mode{"Delphes"};
+  vector<string> analysis_modes{"RecoLevel"};
+  for(auto analysis_mode : analysis_modes){
+    cout<<"\n"<<analysis_mode<<" Analysis\n\n";
+    analysis_procedure(analysis_mode, mode);
+  }
 }
