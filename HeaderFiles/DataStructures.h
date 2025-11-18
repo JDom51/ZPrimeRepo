@@ -46,8 +46,19 @@ namespace DataStructs
     bool take_point_five;
     HistInfo(string nam, string x_ax, string m_column, int bins, double lowbound, double upbound, string unit) : name{nam}, x_axis{x_ax}, column{m_column}, nbins{bins}, lbound{lowbound}, ubound{upbound}, units{unit}, take_point_five{false} {}
     HistInfo(string nam, string x_ax, string m_column, int bins, double lowbound, double upbound, string unit, bool m_take_point_five) : name{nam}, x_axis{x_ax},  column{m_column}, nbins{bins}, lbound{lowbound}, ubound{upbound}, units{unit}, take_point_five{m_take_point_five} {}
+    void update_column(string override_column){
+      column=override_column;
+    }
   };
-
+  struct HistInfoPair{
+    HistInfo info;
+    string override_column;
+    HistInfoPair(HistInfo m_info, string m_override_column="") : info{m_info}, override_column{m_override_column}{
+      if(override_column != ""){
+        info.update_column(override_column);
+      }
+    };
+  };
   typedef bool (*BroadCut)(ROOT::VecOps::RVec<unsigned int> indicies);
   typedef bool (*SelCutFunc)(Float_t y, Float_t x, Float_t m, bool in);
 

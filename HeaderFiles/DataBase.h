@@ -79,7 +79,11 @@ namespace DataBase{
     {"RecoLevel", {{size_2, {"Jet_TauTagIndicies"}}}},
     {"Gen+RecoLevel", {{size_2, {"DeltaRIndicies"}}}},
     {"SelectionCutTRUTHJET", {{size_2, {"DeltaRIndiciesTRUTHJET"}}}},
-    {"SelectionCut", {{size_2, {"DeltaRIndicies"}}}},
+    {"SelectionCut", {
+                      {size_2, {"DeltaRIndicies"}},
+                      {size_2, {"Particle_TauIndicies"}}
+                     }
+    },
     {"SelectionCutZOnly", {{size_2, {"DeltaRIndicies"}}}},
     {"GenLevel", {}},
     {"EE", {}},
@@ -109,7 +113,10 @@ namespace DataBase{
               {"TauJetPT", "PT", "Jet_TauTagPT", 200, 0, 200, "GeV"},
               {"TauPT", "PT", "Tau_PT", 200, 0, 200, "GeV"},
               {"Number of Tau Jets", "Number", "Jet_TauNum", 10, 0, 10, "", true},
-              {"Number of DeltaR indicies", "Number", "DeltaR_Num", 3, 0, 3, "", true}
+              {"Number of DeltaR indicies", "Number", "DeltaR_Num", 3, 0, 3, "", true},
+              {"DeltaR between Gen Taus", "\\Delta R", "GenTauDeltaR", 500, 0, 5, ""},
+              {"Delta R between obs taus", "\\Delta R", "TauJetDeltaR", 500, 0, 5, ""},
+              {"Number of Gen Taus in event", "\\Number", "Tau_Num", 5, 0, 5, "", true}
             }},
     {"RecoLevel", {{"MET", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
                    {"Inv Mass without Neutrinos", "IMass", "TauJetInvMass", 200, 0, 200, "GeV"},

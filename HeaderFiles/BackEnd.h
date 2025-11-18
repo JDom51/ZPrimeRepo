@@ -182,6 +182,9 @@ void save_histograms(
     fd.Define("Tau_Energy", LFuncs::use_indicies, {"Particle.E", "Particle_TauIndicies"});
     fd.Define("Tau_Mass", LFuncs::use_indicies, {"Particle.Mass", "Particle_TauIndicies"});
     fd.Define("Tau_Alpha", LFuncs::get_alpha, {"Tau_Eta"});
+    fd.Define("GenTauDeltaR", LFuncs::get_DeltaR, {"Tau_Phi", "Tau_Eta"});
+    fd.Define("Tau_Num", LFuncs::get_size<Float_t>, {"Tau_PT"});
+
     // Delta R Tau
     fd.Define("DeltaRJetTau1", LFuncs::get_delta_r_1, {"Tau_Eta", "Jet_TauTagEta", "Tau_Phi", "Jet_TauTagPhi"});
     fd.Define("DeltaRJetTau2", LFuncs::get_delta_r_2, {"Tau_Eta", "Jet_TauTagEta", "Tau_Phi", "Jet_TauTagPhi"});
@@ -206,7 +209,7 @@ void save_histograms(
     fd.Define("Jet_DTauTagPy", LFuncs::get_py, {"Jet_DTauTagPT", "Jet_DTauTagPhi"});
     fd.Define("Jet_DTauTagPz", LFuncs::get_pz, {"Jet_DTauTagPT", "Jet_DTauTagEta"});
     fd.Define("Jet_DTauTagAlpha", LFuncs::get_alpha, {"Jet_DTauTagEta"}); // Alpha is tan-1 (pt/pz)
-
+    fd.Define("TauJetDeltaR", LFuncs::get_DeltaR, {"Jet_DTauTagPhi", "Jet_DTauTagEta"});
     // Truth Matched JET to Tau.
     fd.Define("Jet_TruthTauMatchMass", LFuncs::use_indicies, {"Jet.Mass", "DeltaRIndiciesTRUTHJET"});
     fd.Define("Jet_TruthTauMatchPT", LFuncs::use_indicies, {"Jet.PT", "DeltaRIndiciesTRUTHJET"});

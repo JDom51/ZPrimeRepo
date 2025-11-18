@@ -197,6 +197,7 @@ void DataBase::TruthAnalysis(DataStructs::FrameAndData& fd){
 void DataBase::GeneratorLevelTauAnalysis(DataStructs::FrameAndData& fd){
   // generator level tau analysis was purely on focused on the generator information of the taus and no reco level variables
   fd.Define("GenTauInvMass", LFuncs::inv_mass_ml, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
+  fd.node.Foreach([](ROOT::VecOps::RVec<Float_t> tau_pt, ROOT::VecOps::RVec<Float_t> tau_phi, ROOT::VecOps::RVec<Float_t> tau_eta){cout<<"TauPT: "<<tau_pt<< " TauEta: " << tau_eta << " TauPhi: " << tau_phi << " \n";}, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
 
 }
 void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
@@ -226,7 +227,6 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
 // 
     return abs(jet_met_1_angle + jet_met_2_angle - jet_angle );
   };
-
   // fd.Define("NeutrinoPT2", LFuncs::get_co/ // fd.Filter(filter_open_met, {"MissingET.Eta", "Jet_TauTagEta"});
   // // fd.Define("x2", get_x2, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
   // // fd.Define("x1", get_x1, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
@@ -246,6 +246,7 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   // fd.Define("TauJetInvMass", get_inv_mass, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
   // fd.Define("TauJetInvMassWithNeutrino", get_inv_mass, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});l_neutrinopt2, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi"});
   
+
   fd.Define("NeutrinoPT2", LFuncs::get_col_neutrinopt2, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi"});
   fd.Define("NeutrinoPT1", LFuncs::get_col_neutrinopt1, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi", "NeutrinoPT2"});
   fd.Define("Jet_DTauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_DTauTagPT", "NeutrinoPT1", "NeutrinoPT2"});
@@ -255,8 +256,7 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   fd.Define("TauJetInvMass", LFuncs::inv_mass_ml, {"Jet_DTauTagPT", "Jet_DTauTagEta", "Jet_DTauTagPhi"});
   fd.Define("TauJetInvMassWithNeutrino", LFuncs::inv_mass_ml, {"Jet_DTauTagNeutrinoPT", "Jet_DTauTagPhi", "Jet_DTauTagEta"});
   fd.Define("GenTauInvMass", LFuncs::inv_mass_ml, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
-  fd.Define("GenTauDeltaR", LFuncs::get_DeltaR, {"Tau_Phi", "Tau_Eta"});
-  fd.Define("TauJetDeltaR", LFuncs::get_DeltaR, {"Jet_DTauTagPhi", "Jet_DTauTagEta"});
+
   // fd.Define("TauTagDeltaR", LFuncs::get_DeltaR, {"Jet_TauTagPhi", "Jet_TauTagEta"});
   // TRUTH JET DEFINITIONS.
   // fd.Define("TruthMatchDeltaPhiTRUTHJET", LFuncs::get_delta_phi, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchPhi"});
@@ -267,20 +267,20 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
 
 
   
-  // fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "METbetweenJets");
-  // fd.Filter(SC::deltaRcut0p3, {"DeltaRJetTauSel"}, "DeltaRCut0p3");
+  fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "METbetweenJets");
+  fd.Filter(SC::deltaRcut0p3, {"DeltaRJetTauSel"}, "DeltaRCut0p3");
   // fd.Filter(SC::pt_tau_cut, {"Jet_DTauTagPT"}, "jetptg20");
   // fd.Filter(SC::gen_inv_mass_g20, {"GenTauInvMass"}, "GenTauInvMassG20");
   // fd.Filter(SC::deltaRcut0p2, {"DeltaRJetTauSel"}, "DeltaRCut0p2");
   // fd.Filter(SC::delta_phi_1, {"TruthMatchDeltaPhi"}, "DeltaPhi1");
   // fd.Filter(SC::delta_phi_1p2, {"TruthMatchDeltaPhi"}, "DeltaPhi1p2");
   // fd.Filter(SC::delta_phi_2, {"TruthMatchDeltaPhi"}, "DeltaPhi2");
-
-
+  // fd.frame.Foreach([](ROOT::VecOps::RVec<Float_t> gen_tau_pt, ROOT::VecOps::RVec<Float_t> reco_tau_pt){cout<<gen_tau_pt<<" "<<reco_tau_pt<<"\n";}, {"Tau_PT","Jet_DTauTagNeutrinoPT"});
   // vector<vector<Integral<Float_t>>> inout = SCAlgo::get_integral<Float_t>(fd, "TruthMatchDeltaPhi", "TauJetInvMassWithNeutrino", SC::y_lt_x_inout, {0, 3.2}, 10);
   // BackEnd::serialise_integral(inout[0], "DeltaPhiIn" + fd.save_string);
   // BackEnd::serialise_integral(inout[1], "DeltaPhiOut" + fd.save_string);
 }
+
 void DataBase::EAnalysis(DataStructs::FrameAndData& fd){
   // comparitive analysis to the general analysis to see how the electrons behave for a comparison with rhys and with the taus.
 
@@ -313,7 +313,7 @@ void GeneralAnalyser()
 {
   // Loading Info
   string mode{"Delphes"};
-  vector<string> analysis_modes{"RecoLevel"};
+  vector<string> analysis_modes{"GenLevel"};
   for(auto analysis_mode : analysis_modes){
     cout<<"\n"<<analysis_mode<<" Analysis\n\n";
     analysis_procedure(analysis_mode, mode);

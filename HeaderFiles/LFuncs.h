@@ -116,6 +116,9 @@ namespace LFuncs
   }
   Float_t inv_mass_ml(ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> eta, ROOT::VecOps::RVec<Float_t> phi)
   {
+    // if(130 <= sqrt(2 * pt[0] * pt[1] * ( cosh(eta[0] - eta[1]) - cos(phi[0] - phi[1]) ) ) && sqrt(2 * pt[0] * pt[1] * ( cosh(eta[0] - eta[1]) - cos(phi[0] - phi[1]) ) ) <= 170){
+      // cout << "IMass: " << sqrt(2 * pt[0] * pt[1] * ( cosh(eta[0] - eta[1]) - cos(phi[0] - phi[1]) ) ) << " PT: " << pt << " Eta: " << eta << " Phi: " << phi <<"\n";
+    // }
     return sqrt(2 * pt[0] * pt[1] * ( cosh(eta[0] - eta[1]) - cos(phi[0] - phi[1]) ) );
   }
   Float_t inv_mass_pt(ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> eta, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> m)
@@ -137,6 +140,7 @@ namespace LFuncs
       tot_py += py;
       tot_pz += pz;
     }
+  
     return sqrt(pow(tot_e,2) - pow(tot_px, 2) - pow(tot_py, 2) - pow(tot_pz, 2));
   }
   Float_t inv_mass_xyz(ROOT::VecOps::RVec<Float_t> E, ROOT::VecOps::RVec<Float_t> px, ROOT::VecOps::RVec<Float_t> py, ROOT::VecOps::RVec<Float_t> pz)
