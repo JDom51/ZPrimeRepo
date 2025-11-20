@@ -175,16 +175,32 @@ void save_histograms(
     // Particle
     fd.Define("Particle_TotInvMass", LFuncs::inv_mass_xyz, {"Particle.E", "Particle.Px", "Particle.Py", "Particle.Pz"});
     fd.Define("Particle_TauIndicies", LFuncs::get_tau_indicies, {"Particle.PID"});
+    fd.Define("Particle_TauNeutrinoIndicies", LFuncs::get_tau_neutrino_indicies, {"Particle.PID"});
     // - Tau
     fd.Define("Tau_PT", LFuncs::use_indicies, {"Particle.PT", "Particle_TauIndicies"});
     fd.Define("Tau_Eta", LFuncs::use_indicies, {"Particle.Eta", "Particle_TauIndicies"});
     fd.Define("Tau_Phi", LFuncs::use_indicies, {"Particle.Phi", "Particle_TauIndicies"});
     fd.Define("Tau_Energy", LFuncs::use_indicies, {"Particle.E", "Particle_TauIndicies"});
     fd.Define("Tau_Mass", LFuncs::use_indicies, {"Particle.Mass", "Particle_TauIndicies"});
+    fd.Define("Tau_Status", LFuncs::use_indicies_int, {"Particle.Status", "Particle_TauIndicies"});
+    fd.Define("Tau_IsPU", LFuncs::use_indicies_int, {"Particle.IsPU", "Particle_TauIndicies"});
     fd.Define("Tau_Alpha", LFuncs::get_alpha, {"Tau_Eta"});
     fd.Define("GenTauDeltaR", LFuncs::get_DeltaR, {"Tau_Phi", "Tau_Eta"});
     fd.Define("Tau_Num", LFuncs::get_size<Float_t>, {"Tau_PT"});
-
+    // Tau Neutrino
+    fd.Define("TauNeutrino_PT", LFuncs::use_indicies, {"Particle.PT", "Particle_TauNeutrinoIndicies"});
+    fd.Define("TauNeutrino_Eta", LFuncs::use_indicies, {"Particle.Eta", "Particle_TauNeutrinoIndicies"});
+    fd.Define("TauNeutrino_Phi", LFuncs::use_indicies, {"Particle.Phi", "Particle_TauNeutrinoIndicies"});
+    fd.Define("TauNeutrino_Energy", LFuncs::use_indicies, {"Particle.E", "Particle_TauNeutrinoIndicies"});
+    fd.Define("TauNeutrino_Mass", LFuncs::use_indicies, {"Particle.Mass", "Particle_TauNeutrinoIndicies"});
+    fd.Define("TauNeutrino_Status", LFuncs::use_indicies_int, {"Particle.Status", "Particle_TauNeutrinoIndicies"});
+    fd.Define("TauNeutrino_IsPU", LFuncs::use_indicies_int, {"Particle.IsPU", "Particle_TauNeutrinoIndicies"});
+    fd.Define("TauNeutrino_Alpha", LFuncs::get_alpha, {"TauNeutrino_Eta"});
+    //fd.Define("GenTauDeltaR", LFuncs::get_DeltaR, {"Tau_Phi", "Tau_Eta"});
+    fd.Define("TauNeutrino_Num", LFuncs::get_size<Float_t>, {"TauNeutrino_PT"});
+    // TruthMET
+    fd.Define("TruthMissingET_MET", LFuncs::get_truth_met_met, {"TauNeutrino_PT", "TauNeutrino_Phi"});
+    fd.Define("TruthMissingET_Phi", LFuncs::get_truth_met_phi, {"TauNeutrino_PT", "TauNeutrino_Phi"});
     // Delta R Tau
     fd.Define("DeltaRJetTau1", LFuncs::get_delta_r_1, {"Tau_Eta", "Jet_TauTagEta", "Tau_Phi", "Jet_TauTagPhi"});
     fd.Define("DeltaRJetTau2", LFuncs::get_delta_r_2, {"Tau_Eta", "Jet_TauTagEta", "Tau_Phi", "Jet_TauTagPhi"});

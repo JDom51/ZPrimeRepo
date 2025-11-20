@@ -197,7 +197,8 @@ void DataBase::TruthAnalysis(DataStructs::FrameAndData& fd){
 void DataBase::GeneratorLevelTauAnalysis(DataStructs::FrameAndData& fd){
   // generator level tau analysis was purely on focused on the generator information of the taus and no reco level variables
   fd.Define("GenTauInvMass", LFuncs::inv_mass_ml, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
-  fd.node.Foreach([](ROOT::VecOps::RVec<Float_t> tau_pt, ROOT::VecOps::RVec<Float_t> tau_phi, ROOT::VecOps::RVec<Float_t> tau_eta){cout<<"TauPT: "<<tau_pt<< " TauEta: " << tau_eta << " TauPhi: " << tau_phi << " \n";}, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
+  cout << fd.frame.GetColumnType("Particle.Status") << " <<<<<THE TYPE OF STATUS\n";
+  //fd.node.Foreach([](ROOT::VecOps::RVec<Float_t> tau_pt, ROOT::VecOps::RVec<Float_t> tau_phi, ROOT::VecOps::RVec<Float_t> tau_eta, ROOT::VecOps::RVec<Float_t> tau_status){cout<<"TauPT: "<<tau_pt<< " TauEta: " << tau_eta << " TauPhi: " << tau_phi << " TauStatus: "<< tau_status << " \n";}, {"Tau_PT", "Tau_Phi", "Tau_Eta", "Tau_Status"});
 
 }
 void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
@@ -209,53 +210,29 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   // get_integral(fd, column_name, selection_cut, sel_cut_values, resolution)
   //get invmass
 
-  auto wraparound_fix = [](ROOT::VecOps::RVec<Float_t> phi_jet, ROOT::VecOps::RVec<Float_t> pt_jet, ROOT::VecOps::RVec<Float_t> phi_met, ROOT::VecOps::RVec<Float_t> met)
-  {
-    Float_t px1{ pt_jet[0] * cos(phi_jet[0]) };
-    Float_t py1{ pt_jet[0] * sin(phi_jet[0]) };
-    Float_t p1{ static_cast<Float_t>(sqrt (  pow(px1, 2) + pow(py1, 2) ) ) };
-    Float_t px2{ pt_jet[1] * cos( phi_jet[1] ) };
-    Float_t py2{ pt_jet[1] * sin( phi_jet[1] )};
-    Float_t p2{ static_cast<Float_t>(sqrt( pow(px2, 2) + pow(py2, 2))) };
-    Float_t ex{ met[0] * cos(phi_met[0] ) };
-    Float_t ey{ met[0] * sin(phi_met[0] ) };
-    Float_t em{ static_cast<Float_t>(sqrt( pow(ex,2) + pow(ey, 2) ) )};
-      //  this is wrong
-    Float_t jet_angle = acos( (px1 * px2 + py1 * py2) / (p1 * p2) );
-    Float_t jet_met_1_angle = acos( (px1 * ex + py1 * ey) / (p1 * em) );
-    Float_t jet_met_2_angle = acos( (px2 * ex + py2 * ey) / (p2 * em) );
-// 
-    return abs(jet_met_1_angle + jet_met_2_angle - jet_angle );
-  };
+
   // fd.Define("NeutrinoPT2", LFuncs::get_co/ // fd.Filter(filter_open_met, {"MissingET.Eta", "Jet_TauTagEta"});
-  // // fd.Define("x2", get_x2, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
-  // // fd.Define("x1", get_x1, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
-  // // fd.Filter(x_boundaries, {"x2"});
-  // // fd.Filter(x_boundaries, {"x1"});
-  // // fd.Filter(filter_phi, {"Jet_TauTagPhi", "MissingET.Phi"});
-  // // fd.Filter(my_way, {"Jet_TauTagPhi"});
-  // // fd.Filter(no_b2b, {"Jet_TauTagPhi"});
-  // // fd.Define("NeutrinoTheta", get_theta, {"Jet_TauTagEta"});
-  // fd.Define("AngleBetween", get_angle_between, {"DJet_TauTagPx", "DJet_TauTagPy", "DcJet_TauTagPz"});
-  // fd.Define("Neutrino_PT2", get_pt2, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi"});
-  // fd.Define("Neutrino_PT1", get_pt1, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT2"});
-  // fd.Filter(wraparound_fix, {"Jet_TauTagPhi", "Jet_TauTagEta", "Jet_TauTagPT", "MissingET.Phi", "MissingET.Eta", "MissingET.MET"});
-  // // fd.Filter(greater_zero, {"Neutrino_PT1", "Neutrino_PT2"});
-  // //fd.Define("MET_TEST", get_met, {"Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT1", "Neutrino_PT2"});
-  // fd.Define("Jet_TauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_TauTagPT", "Neutrino_PT1", "Neutrino_PT2"});
-  // fd.Define("TauJetInvMass", get_inv_mass, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
-  // fd.Define("TauJetInvMassWithNeutrino", get_inv_mass, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});l_neutrinopt2, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi"});
-  
+  // PrintOff Truth Neutrino PT and reco Neutrino PT
+  auto print_neut= [](ROOT::VecOps::RVec<Float_t> truth_met, ROOT::VecOps::RVec<float_t> met){
+    cout <<"Truth MET" << truth_met  << " reco met: " << met <<  "\n";  
+  };
 
   fd.Define("NeutrinoPT2", LFuncs::get_col_neutrinopt2, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi"});
   fd.Define("NeutrinoPT1", LFuncs::get_col_neutrinopt1, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi", "NeutrinoPT2"});
   fd.Define("Jet_DTauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_DTauTagPT", "NeutrinoPT1", "NeutrinoPT2"});
-  fd.Define("TruthMatchDeltaPhi", LFuncs::get_delta_phi, {"Jet_DTauTagPT", "Jet_DTauTagPhi"});
+  fd.Define("TruthMatchDeltaPhi", LFuncs::get_delta_phi, {"Jet_DTauTagPhi"});
   fd.Define("AngleBetweenMET", LFuncs::met_jet_ang, {"MissingET.Phi", "Jet_DTauTagPhi"});
   // fd.Define("AngleBetweenMET", wraparound_fix, {"Jet_DTauTagPhi", "Jet_DTauTagPT", "MissingET.Phi", "MissingET.MET"});
   fd.Define("TauJetInvMass", LFuncs::inv_mass_ml, {"Jet_DTauTagPT", "Jet_DTauTagEta", "Jet_DTauTagPhi"});
   fd.Define("TauJetInvMassWithNeutrino", LFuncs::inv_mass_ml, {"Jet_DTauTagNeutrinoPT", "Jet_DTauTagPhi", "Jet_DTauTagEta"});
   fd.Define("GenTauInvMass", LFuncs::inv_mass_ml, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
+
+  // Truth Match to Truth MET
+  fd.Define("TruthNeutrinoPT2", LFuncs::get_col_neutrinopt2, {"TruthMissingET_MET", "Jet_DTauTagPhi", "TruthMissingET_Phi"});
+  fd.Define("TruthNeutrinoPT1", LFuncs::get_col_neutrinopt1, {"TruthMissingET_MET", "Jet_DTauTagPhi", "TruthMissingET_Phi", "TruthNeutrinoPT2"});
+  fd.Define("Jet_DTauTagTruthNeutrinoPT", LFuncs::add_col_pt, {"Jet_DTauTagPT", "TruthNeutrinoPT1", "TruthNeutrinoPT2"});
+  fd.Define("AngleBetweenTruthMET", LFuncs::met_jet_ang, {"TruthMissingET_Phi", "Jet_DTauTagPhi"});
+  fd.Define("TauJetInvMassWithTruthNeutrino", LFuncs::inv_mass_ml, {"Jet_DTauTagTruthNeutrinoPT", "Jet_DTauTagPhi", "Jet_DTauTagEta"});
 
   // fd.Define("TauTagDeltaR", LFuncs::get_DeltaR, {"Jet_TauTagPhi", "Jet_TauTagEta"});
   // TRUTH JET DEFINITIONS.
@@ -267,11 +244,13 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
 
 
   
-  fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "METbetweenJets");
+  fd.Filter(SC::met_angle_diff, {"AngleBetweenTruthMET"}, "TruthMETbetweenJets0p025");
   fd.Filter(SC::deltaRcut0p3, {"DeltaRJetTauSel"}, "DeltaRCut0p3");
   // fd.Filter(SC::pt_tau_cut, {"Jet_DTauTagPT"}, "jetptg20");
   // fd.Filter(SC::gen_inv_mass_g20, {"GenTauInvMass"}, "GenTauInvMassG20");
-  // fd.Filter(SC::deltaRcut0p2, {"DeltaRJetTauSel"}, "DeltaRCut0p2");
+  fd.Filter(SC::deltaRcut0p2, {"DeltaRJetTauSel"}, "DeltaRCut0p2");
+  fd.node.Foreach(print_neut, {"TruthMissingET_MET", "MissingET.MET"});
+
   // fd.Filter(SC::delta_phi_1, {"TruthMatchDeltaPhi"}, "DeltaPhi1");
   // fd.Filter(SC::delta_phi_1p2, {"TruthMatchDeltaPhi"}, "DeltaPhi1p2");
   // fd.Filter(SC::delta_phi_2, {"TruthMatchDeltaPhi"}, "DeltaPhi2");
@@ -313,7 +292,7 @@ void GeneralAnalyser()
 {
   // Loading Info
   string mode{"Delphes"};
-  vector<string> analysis_modes{"GenLevel"};
+  vector<string> analysis_modes{"SelectionCut"};
   for(auto analysis_mode : analysis_modes){
     cout<<"\n"<<analysis_mode<<" Analysis\n\n";
     analysis_procedure(analysis_mode, mode);

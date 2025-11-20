@@ -10,7 +10,7 @@ namespace SC
     return 80 <= mass && mass <= 100;
   }
   bool met_angle_diff(Float_t angle_diff){
-    return angle_diff < 0.002*pow(10,-3);
+    return angle_diff < 0.025;
   }
   bool gen_inv_mass_g20(Float_t mass){
     return mass > 20;

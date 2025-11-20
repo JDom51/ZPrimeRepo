@@ -85,6 +85,15 @@ namespace LFuncs
     }
     return new_var;
   };
+  ROOT::VecOps::RVec<int> use_indicies_int(ROOT::VecOps::RVec<int> var, ROOT::VecOps::RVec<unsigned int> indicies)
+  {
+    ROOT::VecOps::RVec<Float_t> new_var{};
+    for(auto i : indicies)
+    {
+      new_var.push_back(var[i]);
+    }
+    return new_var;
+  };
   ROOT::VecOps::RVec<Float_t> use_neither_indicies(ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<unsigned int> btag, ROOT::VecOps::RVec<unsigned int> tautag)
   {
     ROOT::VecOps::RVec<Float_t> not_bt_pt{};
@@ -192,7 +201,8 @@ namespace LFuncs
 
   Float_t get_col_neutrinopt2(ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e){
     // return met[0] * ( sin(phi_e[0]) - cos(phi_e[0]) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi[0]) );
-    return met[0] * (cos(phi_e[0]) - sin(phi_e[0]) /tan(phi[0])) / (cos(phi[1]) - sin(phi[1]) / tan(phi[0]));
+    cout << "MET: " << met << " Phi: " << phi << " phi_e: " << phi_e <<"\n";
+    return met[0] * ( - cos(phi_e[0]) * tan(phi[0]) + sin(phi_e[0]) ) / (- cos(phi[1]) * tan(phi[0]) + sin(phi[1]));
   }
 
   ROOT::VecOps::RVec<unsigned int> get_gen_indicies(ROOT::VecOps::RVec<unsigned int> tau_tag, ROOT::VecOps::RVec<unsigned int> gen_tag)
@@ -204,7 +214,7 @@ namespace LFuncs
     }
     return gen_indicies;
   }
-  Float_t get_delta_phi(ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi)
+  Float_t get_delta_phi(ROOT::VecOps::RVec<Float_t> phi)
   {
     // Float_t px1 = pt[0] * cos(phi[0]);
     // Float_t py1 = pt[0] * sin(phi[0]);
@@ -229,6 +239,32 @@ namespace LFuncs
       if(abs(pid[i]) == 15){tau_indicies.push_back(i);}
     }
     return tau_indicies;
+  }
+  ROOT::VecOps::RVec<unsigned int> get_tau_neutrino_indicies(ROOT::VecOps::RVec<int> pid){
+    ROOT::VecOps::RVec<unsigned int> tau_neutrino_indicies{};
+    for(int i{0}; i < pid.size(); i++){
+      if(abs(pid[i]) == 16){tau_neutrino_indicies.push_back(i);}
+    }
+    return tau_neutrino_indicies;
+  }
+
+  ROOT::VecOps::RVec<Float_t> get_truth_met_met(ROOT::VecOps::RVec<Float_t> tau_neutrino_pt, ROOT::VecOps::RVec<Float_t> tau_neutrino_phi){
+    Float_t truth_met_x{0};
+    Float_t truth_met_y{0};
+    for(int i{0}; i < 2; i++){
+      truth_met_x += tau_neutrino_pt[i] * cos(tau_neutrino_phi[i]);
+      truth_met_y += tau_neutrino_pt[i] * sin(tau_neutrino_phi[i]);
+    }
+    return {sqrt(truth_met_x * truth_met_x + truth_met_y * truth_met_y)};
+  }
+  ROOT::VecOps::RVec<Float_t> get_truth_met_phi(ROOT::VecOps::RVec<Float_t> tau_neutrino_pt, ROOT::VecOps::RVec<Float_t> tau_neutrino_phi){
+    Float_t truth_met_x{0};
+    Float_t truth_met_y{0};
+    for(int i{0}; i < 2; i++){
+      truth_met_x += tau_neutrino_pt[i] * cos(tau_neutrino_phi[i]);
+      truth_met_y += tau_neutrino_pt[i] * sin(tau_neutrino_phi[i]);
+    }
+    return {atan(truth_met_y/truth_met_x)};
   }
   ROOT::VecOps::RVec<Float_t> get_delta_r_1(ROOT::VecOps::RVec<Float_t> eta_tau, ROOT::VecOps::RVec<Float_t> eta_jet, ROOT::VecOps::RVec<Float_t> phi_tau, ROOT::VecOps::RVec<Float_t> phi_jet)
   {

@@ -81,7 +81,7 @@ namespace DataBase{
     {"SelectionCutTRUTHJET", {{size_2, {"DeltaRIndiciesTRUTHJET"}}}},
     {"SelectionCut", {
                       {size_2, {"DeltaRIndicies"}},
-                      {size_2, {"Particle_TauIndicies"}}
+                      // {size_2, {"Particle_TauIndicies"}}
                      }
     },
     {"SelectionCutZOnly", {{size_2, {"DeltaRIndicies"}}}},
@@ -172,6 +172,11 @@ namespace DataBase{
              {"Alpha of Truth Matched Tau", "\\alpha", "Jet_DTauTagAlpha", 100, -4, 4, "rad"},
              {"DeltaR between Gen Taus", "\\Delta R", "GenTauDeltaR", 500, 0, 5, ""},
               {"Delta R between obs taus", "\\Delta R", "TauJetDeltaR", 500, 0, 5, ""},
+              {"PT of truthNeutrino1", "PT", "TruthNeutrinoPT2", 300, -100, 200, "GeV"},
+              {"Pt of truthNeutrino2", "Pt", "TruthNeutrinoPT1", 300, -100, 200, "GeV"},
+              {"PT of tau jet with truth neutrino included", "PT", "Jet_DTauTagTruthNeutrinoPT", 200, 0, 200, "GeV"},
+              {"angle difference between the truth met and the jets", "Angle Difference", "AngleBetweenTruthMET", 1000, 0, 1, "rad"},
+              {"Invariant Mass of Taus with Truth Neutrino PT included", "IMass", "TauJetInvMassWithTruthNeutrino", 100, 0, 200, "GeV/c^2"},
               // {"Delta R between tau tag jets", "\\Delta R", ""}
 
 
