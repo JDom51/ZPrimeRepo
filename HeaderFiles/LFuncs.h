@@ -194,6 +194,18 @@ namespace LFuncs
     }
     return pz;
   }
+  ROOT::VecOps::RVec<Float_t> get_difference_between_vectors(ROOT::VecOps::RVec<Float_t> v1, ROOT::VecOps::RVec<Float_t>& v2){
+    for(int i{0}; i< v1.size(); i++){
+      v1[i] -= v2[i];
+    }
+    return v1;
+  }
+  ROOT::VecOps::RVec<Float_t> get_normalised_by_v1_difference_between_vectors(ROOT::VecOps::RVec<Float_t> v1, ROOT::VecOps::RVec<Float_t>& v2){
+    for(int i{0}; i< v1.size(); i++){
+      v1[i] = (v1[i]-v2[i])/v1[i];
+    }
+    return v1;
+  }
 
   Float_t get_col_neutrinopt1(ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, Float_t pt2){
     return (met[0] * cos( phi_e[0] ) - pt2 * cos( phi[1] ) ) / ( cos( phi[0] ) );
@@ -201,7 +213,7 @@ namespace LFuncs
 
   Float_t get_col_neutrinopt2(ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e){
     // return met[0] * ( sin(phi_e[0]) - cos(phi_e[0]) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi[0]) );
-    cout << "MET: " << met << " Phi: " << phi << " phi_e: " << phi_e <<"\n";
+    // cout << "MET: " << met << " Phi: " << phi << " phi_e: " << phi_e <<"\n";
     return met[0] * ( - cos(phi_e[0]) * tan(phi[0]) + sin(phi_e[0]) ) / (- cos(phi[1]) * tan(phi[0]) + sin(phi[1]));
   }
 

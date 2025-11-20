@@ -233,7 +233,8 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   fd.Define("Jet_DTauTagTruthNeutrinoPT", LFuncs::add_col_pt, {"Jet_DTauTagPT", "TruthNeutrinoPT1", "TruthNeutrinoPT2"});
   fd.Define("AngleBetweenTruthMET", LFuncs::met_jet_ang, {"TruthMissingET_Phi", "Jet_DTauTagPhi"});
   fd.Define("TauJetInvMassWithTruthNeutrino", LFuncs::inv_mass_ml, {"Jet_DTauTagTruthNeutrinoPT", "Jet_DTauTagPhi", "Jet_DTauTagEta"});
-
+  fd.Define("DifferenceBetweenTruthRecoMET", LFuncs::get_difference_between_vectors, {"TruthMissingET_MET", "MissingET.MET"});
+  fd.Define("NormalisedDifferenceBetweenTruthRecoMET", LFuncs::get_normalised_by_v1_difference_between_vectors, {"TruthMissingET_MET", "MissingET.MET"});
   // fd.Define("TauTagDeltaR", LFuncs::get_DeltaR, {"Jet_TauTagPhi", "Jet_TauTagEta"});
   // TRUTH JET DEFINITIONS.
   // fd.Define("TruthMatchDeltaPhiTRUTHJET", LFuncs::get_delta_phi, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchPhi"});
@@ -244,15 +245,20 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
 
 
   
-  fd.Filter(SC::met_angle_diff, {"AngleBetweenTruthMET"}, "TruthMETbetweenJets0p025");
+  // fd.Filter(SC::met_angle_diff, {"AngleBetweenTruthMET"}, "TruthMETbetweenJets0p025");
+  // fd.Filter(SC::met_angle_diff_fine, {"AngleBetweenTruthMET"}, "TruthMETbetweenJets2E-6");
+
+  // fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "METbetweenJets0p025");
+  fd.Filter(SC::met_angle_diff_fine, {"AngleBetweenMET"}, "METbetweenJets2E-6");
+  // fd.Filter(SC::norm_truth_reco_diff_cut, {"NormalisedDifferenceBetweenTruthRecoMET"}, "METNormDiff0p3");
   fd.Filter(SC::deltaRcut0p3, {"DeltaRJetTauSel"}, "DeltaRCut0p3");
   // fd.Filter(SC::pt_tau_cut, {"Jet_DTauTagPT"}, "jetptg20");
   // fd.Filter(SC::gen_inv_mass_g20, {"GenTauInvMass"}, "GenTauInvMassG20");
-  fd.Filter(SC::deltaRcut0p2, {"DeltaRJetTauSel"}, "DeltaRCut0p2");
-  fd.node.Foreach(print_neut, {"TruthMissingET_MET", "MissingET.MET"});
+  // fd.Filter(SC::deltaRcut0p2, {"DeltaRJetTauSel"}, "DeltaRCut0p2");
+  // fd.node.Foreach(print_neut, {"TruthMissingET_MET", "MissingET.MET"});
 
   // fd.Filter(SC::delta_phi_1, {"TruthMatchDeltaPhi"}, "DeltaPhi1");
-  // fd.Filter(SC::delta_phi_1p2, {"TruthMatchDeltaPhi"}, "DeltaPhi1p2");
+  fd.Filter(SC::delta_phi_1p2, {"TruthMatchDeltaPhi"}, "DeltaPhi1p2");
   // fd.Filter(SC::delta_phi_2, {"TruthMatchDeltaPhi"}, "DeltaPhi2");
   // fd.frame.Foreach([](ROOT::VecOps::RVec<Float_t> gen_tau_pt, ROOT::VecOps::RVec<Float_t> reco_tau_pt){cout<<gen_tau_pt<<" "<<reco_tau_pt<<"\n";}, {"Tau_PT","Jet_DTauTagNeutrinoPT"});
   // vector<vector<Integral<Float_t>>> inout = SCAlgo::get_integral<Float_t>(fd, "TruthMatchDeltaPhi", "TauJetInvMassWithNeutrino", SC::y_lt_x_inout, {0, 3.2}, 10);

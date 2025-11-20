@@ -38,7 +38,14 @@ namespace DataBase{
                       "jdombrowski,pptata_exh_run_03", "jdombrowski,pptata_exh_run_04",
                       "jdombrowski,pptata_exh_run_05","jdombrowski,pptata_exh_run_06",
                       "jdombrowski,pptata_exh_run_07","jdombrowski,pptata_exh_run_08",
-                      "jdombrowski,pptata_exh_run_09","jdombrowski,pptata_exh_run_10"}},
+                      "jdombrowski,pptata_exh_run_09","jdombrowski,pptata_exh_run_10",
+                      "jdombrowski,pptata_exh_run_12","jdombrowski,pptata_exh_run_13",
+                      "jdombrowski,pptata_exh_run_14","jdombrowski,pptata_exh_run_15",
+                      "jdombrowski,pptata_exh_run_16","jdombrowski,pptata_exh_run_17",
+                      "jdombrowski,pptata_exh_run_18","jdombrowski,pptata_exh_run_19",
+                      "jdombrowski,pptata_exh_run_21","jdombrowski,pptata_exh_run_22",
+                      "jdombrowski,pptata_exh_run_23","jdombrowski,pptata_exh_run_24",
+                      "jdombrowski,pptata_exh_run_25"}},
     {"SelectionCutTRUTHJET", {"jdombrowski,pptata_exh_run_01", "jdombrowski,pptata_exh_run_02",
                       "jdombrowski,pptata_exh_run_03", "jdombrowski,pptata_exh_run_04",
                       "jdombrowski,pptata_exh_run_05","jdombrowski,pptata_exh_run_06",
@@ -178,8 +185,8 @@ namespace DataBase{
               {"angle difference between the truth met and the jets", "Angle Difference", "AngleBetweenTruthMET", 1000, 0, 1, "rad"},
               {"Invariant Mass of Taus with Truth Neutrino PT included", "IMass", "TauJetInvMassWithTruthNeutrino", 100, 0, 200, "GeV/c^2"},
               // {"Delta R between tau tag jets", "\\Delta R", ""}
-
-
+              {"Difference between the Truth and Reco MET", "\\not{E_T\\mathrm{truth}} - \\not{E_T\\mathrm{reco}}", "DifferenceBetweenTruthRecoMET", 100, -100, 100, "GeV"},
+              {"NormalisedDifferenceBetweenTruthRecoMET", "\\frac{\\not{E_T\\mathrm{truth}} - \\not{E_T\\mathrm{reco}}}{\\not{E_{T\\mathrm{truth}}}}", "NormalisedDifferenceBetweenTruthRecoMET", 100, -3, 3, ""},
 
               // {"Delta Phi of Tau Leptons", "|Angle Difference|", "DeltaPhiGenTau", 1000, -0.5, 3.5, "rad"},
               // {"Total Tau System PT", "PT", "TotalTauPT", 1000,-1000, 1000, "GeV"}

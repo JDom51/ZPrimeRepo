@@ -6,11 +6,17 @@ namespace SC
   bool size_2(ROOT::VecOps::RVec<unsigned int> indicies){
     return indicies.size() == 2;
   }
+  bool norm_truth_reco_diff_cut(ROOT::VecOps::RVec<Float_t> diff){
+    return abs(diff[0]) < 0.3;
+  }
   bool inv_mass_region_z(Float_t mass){
     return 80 <= mass && mass <= 100;
   }
   bool met_angle_diff(Float_t angle_diff){
     return angle_diff < 0.025;
+  }
+  bool met_angle_diff_fine(Float_t angle_diff){
+    return angle_diff < 2 * pow(10, -6);
   }
   bool gen_inv_mass_g20(Float_t mass){
     return mass > 20;
