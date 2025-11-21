@@ -174,8 +174,8 @@ void save_histograms(
     // fd.Define("GenJet_TauTagPz", LFuncs::get_pz, {"GenJet_TauTagPT", "GenJet_TauTagEta"});
     // Particle
     fd.Define("Particle_TotInvMass", LFuncs::inv_mass_xyz, {"Particle.E", "Particle.Px", "Particle.Py", "Particle.Pz"});
-    fd.Define("Particle_TauIndicies", LFuncs::get_tau_indicies, {"Particle.PID"});
-    fd.Define("Particle_TauNeutrinoIndicies", LFuncs::get_tau_neutrino_indicies, {"Particle.PID"});
+    fd.Define("Particle_TauIndicies", LFuncs::get_tau_indicies, {"Particle.PID", "Particle.Status", "Particle.PT"});
+    fd.Define("Particle_TauNeutrinoIndicies", LFuncs::get_tau_neutrino_indicies, {"Particle.PID", "Particle.Status"});
     // - Tau
     fd.Define("Tau_PT", LFuncs::use_indicies, {"Particle.PT", "Particle_TauIndicies"});
     fd.Define("Tau_Eta", LFuncs::use_indicies, {"Particle.Eta", "Particle_TauIndicies"});

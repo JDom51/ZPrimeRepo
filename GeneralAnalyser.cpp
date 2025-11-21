@@ -213,8 +213,8 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
 
   // fd.Define("NeutrinoPT2", LFuncs::get_co/ // fd.Filter(filter_open_met, {"MissingET.Eta", "Jet_TauTagEta"});
   // PrintOff Truth Neutrino PT and reco Neutrino PT
-  auto print_neut= [](ROOT::VecOps::RVec<Float_t> truth_met, ROOT::VecOps::RVec<float_t> met){
-    cout <<"Truth MET" << truth_met  << " reco met: " << met <<  "\n";  
+  auto print_neut= [](ROOT::VecOps::RVec<Float_t> neutrino_pt, ROOT::VecOps::RVec<int> status){
+    cout <<"tau_pt: " << neutrino_pt  << " status: " << status <<  "\n";  
   };
 
   fd.Define("NeutrinoPT2", LFuncs::get_col_neutrinopt2, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi"});
@@ -255,7 +255,7 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   // fd.Filter(SC::pt_tau_cut, {"Jet_DTauTagPT"}, "jetptg20");
   // fd.Filter(SC::gen_inv_mass_g20, {"GenTauInvMass"}, "GenTauInvMassG20");
   // fd.Filter(SC::deltaRcut0p2, {"DeltaRJetTauSel"}, "DeltaRCut0p2");
-  // fd.node.Foreach(print_neut, {"TruthMissingET_MET", "MissingET.MET"});
+  fd.node.Foreach(print_neut, {"Tau_PT", "Tau_Status"});
 
   // fd.Filter(SC::delta_phi_1, {"TruthMatchDeltaPhi"}, "DeltaPhi1");
   fd.Filter(SC::delta_phi_1p2, {"TruthMatchDeltaPhi"}, "DeltaPhi1p2");

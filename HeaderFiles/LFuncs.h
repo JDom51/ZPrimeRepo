@@ -243,19 +243,19 @@ namespace LFuncs
     return abs( acos( cos(phi1) * cos( phi2 )  + sin(phi1) * sin(phi2) ) );
   }
 
-  ROOT::VecOps::RVec<unsigned int> get_tau_indicies(ROOT::VecOps::RVec<int> pid)
+  ROOT::VecOps::RVec<unsigned int> get_tau_indicies(ROOT::VecOps::RVec<int> pid, ROOT::VecOps::RVec<int> status, ROOT::VecOps::RVec<Float_t> particle_pt)
   {
     ROOT::VecOps::RVec<unsigned int> tau_indicies{};
     for(int i{0}; i < pid.size(); i++)
     {
-      if(abs(pid[i]) == 15){tau_indicies.push_back(i);}
+      if(abs(pid[i]) == 15 && status[i] == 2){tau_indicies.push_back(i);}
     }
     return tau_indicies;
   }
-  ROOT::VecOps::RVec<unsigned int> get_tau_neutrino_indicies(ROOT::VecOps::RVec<int> pid){
+  ROOT::VecOps::RVec<unsigned int> get_tau_neutrino_indicies(ROOT::VecOps::RVec<int> pid, ROOT::VecOps::RVec<int> status){
     ROOT::VecOps::RVec<unsigned int> tau_neutrino_indicies{};
     for(int i{0}; i < pid.size(); i++){
-      if(abs(pid[i]) == 16){tau_neutrino_indicies.push_back(i);}
+      if(abs(pid[i]) == 16 && status[i] == 1){tau_neutrino_indicies.push_back(i);}
     }
     return tau_neutrino_indicies;
   }
