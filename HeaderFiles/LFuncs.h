@@ -194,6 +194,8 @@ namespace LFuncs
     }
     return pz;
   }
+
+
   ROOT::VecOps::RVec<Float_t> get_difference_between_vectors(ROOT::VecOps::RVec<Float_t> v1, ROOT::VecOps::RVec<Float_t>& v2){
     for(int i{0}; i< v1.size(); i++){
       v1[i] -= v2[i];
@@ -252,18 +254,38 @@ namespace LFuncs
     }
     return tau_indicies;
   }
-  ROOT::VecOps::RVec<unsigned int> get_tau_neutrino_indicies(ROOT::VecOps::RVec<int> pid, ROOT::VecOps::RVec<int> status){
+  ROOT::VecOps::RVec<unsigned int> get_tau_neutrino_indicies(ROOT::VecOps::RVec<int> pid, ROOT::VecOps::RVec<int> status, ROOT::VecOps::RVec<unsigned int> intermediate_indicies){
     ROOT::VecOps::RVec<unsigned int> tau_neutrino_indicies{};
+    ROOT::VecOps::RVec<unsigned int> final_tau_neutrino_indicies{};
     for(int i{0}; i < pid.size(); i++){
       if(abs(pid[i]) == 16 && status[i] == 1){tau_neutrino_indicies.push_back(i);}
     }
-    return tau_neutrino_indicies;
+    for(auto i : intermediate_indicies){
+      final_tau_neutrino_indicies.push_back(tau_neutrino_indicies[i]);
+    }
+    return final_tau_neutrino_indicies;
+  }
+  ROOT::VecOps::RVec<unsigned int> get_intermediate_tau_indicies(ROOT::VecOps::RVec<unsigned int> tau_indicies, ROOT::VecOps::RVec<Float_t> particle_pt){
+    ROOT::VecOps::RVec<unsigned int> new_indicies{};
+    for(int i{0}; i < tau_indicies.size(); i++){
+      if(particle_pt[tau_indicies[i]] > 10){
+        new_indicies.push_back(i);
+      }
+    }
+    return new_indicies;
+  }
+  ROOT::VecOps::RVec<unsigned int> get_cut_tau_indicies(ROOT::VecOps::RVec<unsigned int> tau_indicies, ROOT::VecOps::RVec<unsigned int> selected_indicies){
+    ROOT::VecOps::RVec<Float_t> new_indicies{};
+    for(int i{0}; i < selected_indicies.size(); i++){
+      new_indicies.push_back(tau_indicies[selected_indicies[i]]);
+    }
+    return new_indicies;
   }
 
   ROOT::VecOps::RVec<Float_t> get_truth_met_met(ROOT::VecOps::RVec<Float_t> tau_neutrino_pt, ROOT::VecOps::RVec<Float_t> tau_neutrino_phi){
     Float_t truth_met_x{0};
     Float_t truth_met_y{0};
-    for(int i{0}; i < 2; i++){
+    for(int i{0}; i < tau_neutrino_pt.size(); i++){
       truth_met_x += tau_neutrino_pt[i] * cos(tau_neutrino_phi[i]);
       truth_met_y += tau_neutrino_pt[i] * sin(tau_neutrino_phi[i]);
     }

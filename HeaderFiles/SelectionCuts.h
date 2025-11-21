@@ -33,11 +33,15 @@ namespace SC
   {
     return delta_phi < 2.9;
   }
+  
   bool delta_phi_cut_less(Float_t delta_phi){
     return delta_phi < 1.5;
   }
   bool delta_phi_1p2(Float_t delta_phi){
     return delta_phi < 1.2;
+  }
+  bool delta_phi_1p6(Float_t delta_phi){
+    return delta_phi < 1.6;
   }
   bool delta_phi_2(Float_t delta_phi){
     return delta_phi < 2;

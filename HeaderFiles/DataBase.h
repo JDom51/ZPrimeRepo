@@ -88,7 +88,7 @@ namespace DataBase{
     {"SelectionCutTRUTHJET", {{size_2, {"DeltaRIndiciesTRUTHJET"}}}},
     {"SelectionCut", {
                       {size_2, {"DeltaRIndicies"}},
-                      // {size_2, {"Particle_TauIndicies"}}
+                      {size_2, {"Particle_TauIndicies"}}
                      }
     },
     {"SelectionCutZOnly", {{size_2, {"DeltaRIndicies"}}}},
