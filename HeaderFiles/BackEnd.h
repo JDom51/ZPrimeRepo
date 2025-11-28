@@ -33,7 +33,7 @@ namespace BackEnd
 
 
     // while(getline(open_files, file))
-    for(auto file :  DataBase::loadable_files[analysis_mode])
+    for(auto file :  DataBase::database[analysis_mode].ifiles)
     {
       size_t delimiter{file.find(",")};
       cout<<"/gluster/data/atlas/" + file.substr(0, delimiter) + "/DATA/" + file.substr(delimiter + 1) + ".root\n";
@@ -93,6 +93,8 @@ void save_histograms(
         h->SetName(hist_info[i].name.c_str()); // optional rename
         h->GetXaxis()->SetTitle((hist_info[i].x_axis + " (" + hist_info[i].units + ")").c_str());
         h->GetYaxis()->SetTitle("Events");
+        // h->Scale(6.24 * pow(10, -5)); // Scale to rhys' ATLAS lum 36.6fb-1 epsilon 0.028, cross section = 29fb
+        // h->Scale(2.2 * pow(10, -3)); // Scale to my cross section and predicted ATLAS lum 36.6fb-1 and epsilon 0.95, cross section 29fb.
         h->Write(); // write to ROOT file
     }
 
@@ -110,7 +112,7 @@ void save_histograms(
     save_stringstream << "{";
     for(auto h : histograms)
     {
-      save_stringstream << "{" << h.name << ", " << h.x_axis << ", " << h.column << ", " << h.nbins << ", " << h.lbound << ", " << h.ubound << ", " << h.units << ", " << h.take_point_five << "}, ";
+      save_stringstream << "{" << h.name << ", " << h.x_axis << ", " << h.columns[0] << ", " << h.nbins << ", " << h.lbound << ", " << h.ubound << ", " << h.units << ", " << h.take_point_five << "}, ";
     }
     string save_string{save_stringstream.str()};
     save_string[save_string.size()-2] = '}';
@@ -122,7 +124,9 @@ void save_histograms(
     vector<ROOT::RDF::RResultPtr<TH1D>> histograms(his.size());
     for(int i{0}; i < his.size(); i++){
       cout<<"Histo1D\n";
-      histograms[i] = fd.Histo1D("Hist", his[i].name, his[i].nbins, his[i].lbound, his[i].ubound, his[i].column);
+      if(his[i].mode == 0){
+        histograms[i] = fd.Histo1D("Hist", his[i].name, his[i].nbins, his[i].lbound - 0.5 * his[i].take_point_five, his[i].ubound - 0.5 * his[i].take_point_five, his[i].columns[0]);
+      }
     }
     save_histograms(outputFileName, histograms, his);
 
@@ -172,8 +176,15 @@ void save_histograms(
     // fd.Define("GenJet_TauTagPx", LFuncs::get_px, {"GenJet_TauTagPT", "GenJet_TauTagPhi"});
     // fd.Define("GenJet_TauTagPy", LFuncs::get_py, {"GenJet_TauTagPT", "GenJet_TauTagPhi"});
     // fd.Define("GenJet_TauTagPz", LFuncs::get_pz, {"GenJet_TauTagPT", "GenJet_TauTagEta"});
-    // Particle
+    
+    // Gen Particle Indicies
     fd.Define("Particle_TotInvMass", LFuncs::inv_mass_xyz, {"Particle.E", "Particle.Px", "Particle.Py", "Particle.Pz"});
+
+    fd.Define("Particle_ElectronIndicies", LFuncs::get_electron_indicies, {"Particle.PID", "Particle.Status"});
+    
+    fd.Define("Particle_MuonIndicies", LFuncs::get_muon_indicies, {"Particle.PID", "Particle.Status"});
+    
+
     fd.Define("Particle_TauIndicies_uncut", LFuncs::get_tau_indicies, {"Particle.PID", "Particle.Status", "Particle.PT"});
     fd.Define("Intermediate_TauIndicies", LFuncs::get_intermediate_tau_indicies, {"Particle_TauIndicies_uncut", "Particle.PT"});
     fd.Define("Particle_TauIndicies", LFuncs::get_cut_tau_indicies, {"Particle_TauIndicies_uncut", "Intermediate_TauIndicies"});
@@ -228,6 +239,17 @@ void save_histograms(
     fd.Define("Jet_DTauTagPz", LFuncs::get_pz, {"Jet_DTauTagPT", "Jet_DTauTagEta"});
     fd.Define("Jet_DTauTagAlpha", LFuncs::get_alpha, {"Jet_DTauTagEta"}); // Alpha is tan-1 (pt/pz)
     fd.Define("TauJetDeltaR", LFuncs::get_DeltaR, {"Jet_DTauTagPhi", "Jet_DTauTagEta"});
+    // Select Non TruthTauTag Jets DeltaR
+    fd.Define("Jet_NDTauTagMass", LFuncs::not_use_indicies, {"Jet_TauTagMass", "DeltaRIndicies"});
+    fd.Define("Jet_NDTauTagPT", LFuncs::not_use_indicies, {"Jet_TauTagPT", "DeltaRIndicies"});
+    fd.Define("Jet_NDTauTagEta", LFuncs::not_use_indicies, {"Jet_TauTagEta", "DeltaRIndicies"});
+    fd.Define("Jet_NDTauTagPhi", LFuncs::not_use_indicies, {"Jet_TauTagPhi", "DeltaRIndicies"});
+    fd.Define("Jet_NDTauNum", LFuncs::get_size<unsigned int>, {"DeltaRIndicies"});
+    fd.Define("Jet_NDTauTagPx", LFuncs::get_px, {"Jet_NDTauTagPT", "Jet_NDTauTagPhi"});
+    fd.Define("Jet_NDTauTagPy", LFuncs::get_py, {"Jet_NDTauTagPT", "Jet_NDTauTagPhi"});
+    fd.Define("Jet_NDTauTagPz", LFuncs::get_pz, {"Jet_NDTauTagPT", "Jet_NDTauTagEta"});
+    fd.Define("Jet_NDTauTagAlpha", LFuncs::get_alpha, {"Jet_NDTauTagEta"}); // Alpha is tan-1 (pt/pz)
+    fd.Define("NTauJetDeltaR", LFuncs::get_DeltaR, {"Jet_NDTauTagPhi", "Jet_NDTauTagEta"});
     // Truth Matched JET to Tau.
     fd.Define("Jet_TruthTauMatchMass", LFuncs::use_indicies, {"Jet.Mass", "DeltaRIndiciesTRUTHJET"});
     fd.Define("Jet_TruthTauMatchPT", LFuncs::use_indicies, {"Jet.PT", "DeltaRIndiciesTRUTHJET"});
@@ -237,6 +259,60 @@ void save_histograms(
     fd.Define("Jet_TruthTauMatchPx", LFuncs::get_px, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchPhi"});
     fd.Define("Jet_TruthTauMatchPy", LFuncs::get_py, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchPhi"});
     fd.Define("Jet_TruthTauMatchPz", LFuncs::get_pz, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchEta"});
+    
+    // GenElectron
+    fd.Define("GenElectron_PT",  LFuncs::use_indicies, {"Particle.PT", "Particle_ElectronIndicies"});
+    fd.Define("GenElectron_Eta", LFuncs::use_indicies, {"Particle.Eta", "Particle_ElectronIndicies"});
+    fd.Define("GenElectron_Phi", LFuncs::use_indicies, {"Particle.Phi", "Particle_ElectronIndicies"});
+    fd.Define("GenElectron_Energy", LFuncs::use_indicies, {"Particle.E", "Particle_ElectronIndicies"});
+    fd.Define("GenElectron_Mass", LFuncs::use_indicies, {"Particle.Mass", "Particle_ElectronIndicies"});
+    fd.Define("GenElectron_Status", LFuncs::use_indicies_int, {"Particle.Status", "Particle_ElectronIndicies"});
+    fd.Define("GenElectron_IsPU", LFuncs::use_indicies_int, {"Particle.IsPU", "Particle_ElectronIndicies"});
+    // fd.Define("GenElectron_SumPt", LFuncs::use_indicies, {"Particle.SumPt", "Particle_Electron_indicies"});
+    // fd.Define("GenElectron_SumPtCharged", LFuncs::use_indicies, {"Particle.SumPtCharged", "Particle_Electron_indicies"});
+    // fd.Define("GenElectron_SumPtNeutral", LFuncs::use_indicies, {"Particle.SumPtNeutral", "Particle_Electron_indicies"});
+    fd.Define("GenElectron_Num", LFuncs::get_size<Float_t>, {"GenElectron_PT"});
+    // Gen Muon
+    fd.Define("GenMuon_PT",  LFuncs::use_indicies, {"Particle.PT", "Particle_MuonIndicies"});
+    fd.Define("GenMuon_Eta", LFuncs::use_indicies, {"Particle.Eta", "Particle_MuonIndicies"});
+    fd.Define("GenMuon_Phi", LFuncs::use_indicies, {"Particle.Phi", "Particle_MuonIndicies"});
+    fd.Define("GenMuon_Energy", LFuncs::use_indicies, {"Particle.E", "Particle_MuonIndicies"});
+    fd.Define("GenMuon_Mass", LFuncs::use_indicies, {"Particle.Mass", "Particle_MuonIndicies"});
+    fd.Define("GenMuon_Status", LFuncs::use_indicies_int, {"Particle.Status", "Particle_MuonIndicies"});
+    fd.Define("GenMuon_IsPU", LFuncs::use_indicies_int, {"Particle.IsPU", "Particle_MuonIndicies"});
+    // fd.Define("GenMuon_SumPt", LFuncs::use_indicies, {"Particle.SumPt", "Particle_Muon_indicies"});
+    // fd.Define("GenMuon_SumPtCharged", LFuncs::use_indicies, {"Particle.SumPtCharged", "Particle_Muon_indicies"});
+    // fd.Define("GenMuon_SumPtNeutral", LFuncs::use_indicies, {"Particle.SumPtNeutral", "Particle_Muon_indicies"});
+    fd.Define("GenMuon_Num", LFuncs::get_size<Float_t>, {"GenMuon_PT"});
+
+    // Indicies for pt cut variables.
+    fd.Define("Particle_ElectronIndicies_PTCUT", LFuncs::get_g10_pt_indicies, {"GenElectron_PT", "GenElectron_Eta"});
+    fd.Define("Particle_MuonIndicies_PTCUT", LFuncs::get_g10_pt_indicies, {"GenMuon_PT", "GenMuon_Eta"});
+    // GenElectron cut
+    fd.Define("GenElectronCut_PT",  LFuncs::use_indicies, {"GenElectron_PT", "Particle_ElectronIndicies_PTCUT"});
+    fd.Define("GenElectronCut_Eta", LFuncs::use_indicies, {"GenElectron_Eta", "Particle_ElectronIndicies_PTCUT"});
+    fd.Define("GenElectronCut_Phi", LFuncs::use_indicies, {"GenElectron_Phi", "Particle_ElectronIndicies_PTCUT"});
+    fd.Define("GenElectronCut_Energy", LFuncs::use_indicies, {"GenElectron_Energy", "Particle_ElectronIndicies_PTCUT"});
+    fd.Define("GenElectronCut_Mass", LFuncs::use_indicies, {"GenElectron_Mass", "Particle_ElectronIndicies_PTCUT"});
+    fd.Define("GenElectronCut_Status", LFuncs::use_indicies_int, {"GenElectron_Status", "Particle_ElectronIndicies_PTCUT"});
+    fd.Define("GenElectronCut_IsPU", LFuncs::use_indicies_int, {"GenElectron_IsPU", "Particle_ElectronIndicies_PTCUT"});
+    // fd.Define("GenElectronCut_SumPt", LFuncs::use_indicies, {"GenElectron_SumPt", "Particle_Electron_indicies_PTCUT"});
+    // fd.Define("GenElectronCut_SumPtCharged", LFuncs::use_indicies, {"GenElectron_SumPtCharged", "Particle_Electron_indicies_PTCUT"});
+    // fd.Define("GenElectronCut_SumPtNeutral", LFuncs::use_indicies, {"GenElectron_SumPtNeutral", "Particle_Electron_indicies_PTCUT"});
+    fd.Define("GenElectronCut_Num", LFuncs::get_size<Float_t>, {"GenElectronCut_PT"});    
+    // GenMuon cut
+    fd.Define("GenMuonCut_PT",  LFuncs::use_indicies, {"GenMuon_PT", "Particle_MuonIndicies_PTCUT"});
+    fd.Define("GenMuonCut_Eta", LFuncs::use_indicies, {"GenMuon_Eta", "Particle_MuonIndicies_PTCUT"});
+    fd.Define("GenMuonCut_Phi", LFuncs::use_indicies, {"GenMuon_Phi", "Particle_MuonIndicies_PTCUT"});
+    fd.Define("GenMuonCut_Energy", LFuncs::use_indicies, {"GenMuon_Energy", "Particle_MuonIndicies_PTCUT"});
+    fd.Define("GenMuonCut_Mass", LFuncs::use_indicies, {"GenMuon_Mass", "Particle_MuonIndicies_PTCUT"});
+    fd.Define("GenMuonCut_Status", LFuncs::use_indicies_int, {"GenMuon_Status", "Particle_MuonIndicies_PTCUT"});
+    fd.Define("GenMuonCut_IsPU", LFuncs::use_indicies_int, {"GenMuon_IsPU", "Particle_MuonIndicies_PTCUT"});
+    // fd.Define("GenMuonCut_SumPt", LFuncs::use_indicies, {"GenMuon_SumPt", "Particle_Muon_indicies_PTCUT"});
+    // fd.Define("GenMuonCut_SumPtCharged", LFuncs::use_indicies, {"GenMuon_SumPtCharged", "Particle_Muon_indicies_PTCUT"});
+    // fd.Define("GenMuonCut_SumPtNeutral", LFuncs::use_indicies, {"GenMuon_SumPtNeutral", "Particle_Muon_indicies_PTCUT"});
+    fd.Define("GenMuonCut_Num", LFuncs::get_size<Float_t>, {"GenMuonCut_PT"});
+
     // - Positive
     // fd.Define("PositiveParticleMass", LFuncs::use_indicies, {"Particle.Mass", "PositiveParticleIndicies"});
     // fd.Define("PositiveParticlePx", LFuncs::use_indicies, {"Particle.Px", "PositiveParticleIndicies"});

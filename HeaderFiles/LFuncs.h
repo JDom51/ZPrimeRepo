@@ -85,6 +85,15 @@ namespace LFuncs
     }
     return new_var;
   };
+  ROOT::VecOps::RVec<Float_t> not_use_indicies(ROOT::VecOps::RVec<Float_t> var, ROOT::VecOps::RVec<unsigned int> indicies){
+    ROOT::VecOps::RVec<Float_t> new_var{};
+    for(int i{0}; i < var.size(); i++){
+      if(std::find(indicies.begin(), indicies.end(), i) == indicies.end()){
+        new_var.push_back(var[i]);
+      }
+    }
+    return new_var;
+  }
   ROOT::VecOps::RVec<int> use_indicies_int(ROOT::VecOps::RVec<int> var, ROOT::VecOps::RVec<unsigned int> indicies)
   {
     ROOT::VecOps::RVec<Float_t> new_var{};
@@ -113,6 +122,19 @@ namespace LFuncs
   template<typename Type> int get_size(ROOT::VecOps::RVec<Type> vect)
   {
     return vect.size();
+  }
+  ROOT::VecOps::RVec<unsigned int> get_g10_pt_indicies(ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> eta){
+    ROOT::VecOps::RVec<unsigned int> indicies{};
+    for(int i{0}; i < pt.size(); i++)
+    {
+      if((pt[i] <= 10.0) * (0.00) +
+                                           (abs(eta[i]) <= 1.5) * (pt[i] > 10.0)  * (0.95) +
+                         (abs(eta[i]) > 1.5 && abs(eta[i]) <= 2.5) * (pt[i] > 10.0)  * (0.85) +
+                         (abs(eta[i]) > 2.5)                                   * (0.00)){
+        indicies.push_back(i);
+      }
+    }
+    return  indicies;
   }
   int get_neither_size(ROOT::VecOps::RVec<unsigned int> reference, ROOT::VecOps::RVec<unsigned int> indicies1, ROOT::VecOps::RVec<unsigned int> indicies2)
   {
@@ -254,6 +276,22 @@ namespace LFuncs
     }
     return tau_indicies;
   }
+
+  ROOT::VecOps::RVec<unsigned int> get_electron_indicies(ROOT::VecOps::RVec<int> pid, ROOT::VecOps::RVec<int> status){
+    ROOT::VecOps::RVec<unsigned int> electron_indicies{};
+    for(int i{0}; i < pid.size(); i++){
+      if(abs(pid[i]) == 11){electron_indicies.push_back(i);}
+    }
+    return electron_indicies;
+  }
+  ROOT::VecOps::RVec<unsigned int> get_muon_indicies(ROOT::VecOps::RVec<int> pid, ROOT::VecOps::RVec<int> status){
+    ROOT::VecOps::RVec<unsigned int> muon_indicies{};
+    for(int i{0};i < pid.size(); i++){
+      if(abs(pid[i]) == 13){muon_indicies.push_back(i);}
+    }
+    return muon_indicies;
+  }
+  
   ROOT::VecOps::RVec<unsigned int> get_tau_neutrino_indicies(ROOT::VecOps::RVec<int> pid, ROOT::VecOps::RVec<int> status, ROOT::VecOps::RVec<unsigned int> intermediate_indicies){
     ROOT::VecOps::RVec<unsigned int> tau_neutrino_indicies{};
     ROOT::VecOps::RVec<unsigned int> final_tau_neutrino_indicies{};

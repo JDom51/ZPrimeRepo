@@ -6,6 +6,9 @@ namespace SC
   bool size_2(ROOT::VecOps::RVec<unsigned int> indicies){
     return indicies.size() == 2;
   }
+  bool size_0(ROOT::VecOps::RVec<Float_t> e_pt, ROOT::VecOps::RVec<Float_t> mu_pt){
+    return e_pt.size() == 0 && mu_pt.size() == 0;
+  }
   bool norm_truth_reco_diff_cut(ROOT::VecOps::RVec<Float_t> diff){
     return abs(diff[0]) < 0.3;
   }
@@ -69,10 +72,31 @@ namespace SC
     }
     return result;
   }
+  bool truth_and_fake_cut(ROOT::VecOps::RVec<Float_t> DeltaR){
+    bool truth{false};
+    bool fake{false};
+    for(auto DR: DeltaR){
+      if(!truth && DR < 0.3){truth = true;}
+      if(!fake && DR > 0.3){fake = true;}
+    }
+    return fake && truth;
+  }
+  bool all_fake(ROOT::VecOps::RVec<Float_t> DeltaR){
+    bool result{DeltaR.size() != 0};
+    for(auto DR: DeltaR){
+      result *= DR > 0.3;
+    }
+    return result;
+  }
+
   bool pt_tau_cut(ROOT::VecOps::RVec<Float_t> pt){
     return pt[0] > 20 && pt[1] > 20;
   }
-
+  bool pt_g_10_cut(ROOT::VecOps::RVec<Float_t> pt){
+    bool result{true};
+    for(auto _ : pt) {result *= _ > 10;}
+    return result;
+  }
   bool y_lt_x(Float_t y, Float_t x){
     return y < x;
   }

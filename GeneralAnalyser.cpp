@@ -33,161 +33,26 @@ void DataBase::NoCut(DataStructs::FrameAndData&fd)
   auto at_least_two = [](ROOT::VecOps::RVec<Float_t> value){
     return value.size() >= 2;
   };
+  auto print = [](ROOT::VecOps::RVec<Float_t> mu_pt, ROOT::VecOps::RVec<Float_t> mu_phi, ROOT::VecOps::RVec<int> mu_status, ROOT::VecOps::RVec<Float_t> el_pt, ROOT::VecOps::RVec<Float_t> el_phi, ROOT::VecOps::RVec<int> el_status){
+    cout <<"Muon PT: " << mu_pt << " Phi: " << mu_phi << " status: " << mu_status << "Electron PT: " << el_pt << " Phi: " << el_phi <<" status: " << el_status << "\n";  
+  };
+  auto print_el = [](ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<int> status){
+    cout <<"Electron: " << pt  << " status: " << status <<  "\n";  
+  };
+    auto jetbnum = [](int jetBnum){
+    return jetBnum ==2;
+  };
+  // fd.Filter(SC::pt_g_10_cut, {"GenElectron_PT"}, "GenElectronG10PT");
+  // fd.Filter(SC::pt_g_10_cut, {"GenMuon_PT"}, "GenMuonG10PT");
+  // fd.node.Foreach(print, {"GenMuon_PT", "GenMuon_Phi", "GenMuon_Status", "GenElectron_PT", "GenElectron_Phi", "GenElectron_Status"});
+  // fd.Filter(jetbnum, {"Jet_BNum"}, "2BJets");
+  // fd.node.Foreach(print_el, {"GenElectron_PT", "GenElectron_Status"});
   // fd.Filter(at_least_two, {"Jet_TauTagPT"}, "at_least_two");
 }
 
 void DataBase::Analyse(DataStructs::FrameAndData& fd)
 {
-  // cout << fd.node.GetColumnType("MissingET.MET") << "\n";
-  // auto size_of = [](ROOT::VecOps::RVec<unsigned int> tautag_indicies){return tautag_indicies.size() == 2;};
-  // auto get_pt2 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e){
-    // ROOT::VecOps::RVec<Float_t> pt2{};
-    // pt2.push_back(met[0] * ( sin(phi_e[0]) - cos(phi_e) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi_e[0]) ) );
-    // return met[0] * ( sin(phi_e[0]) - cos(phi_e[0]) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi[0]) );
-    // Float_t frac1 = met[0] * cos(phi_e[0]) / ( sin(theta[1]) * cos(phi[1]) );
-    // Float_t frac2 = ( tan(phi_e[0]) - tan(phi[0]) ) / ( tan(phi[1]) - tan(phi[0]) );
-    // return frac1 * frac2;
-  // };
-  // auto get_pt1 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, Float_t pt2){
-    // ROOT::VecOps::RVec<Float_t> pt1{};
-    // pt1.push_back((met[0] * cos( phi_e[0] ) - pt2[0] * cos( phi[1] ) ) / ( cos( phi[0] ) ) );
-    // return (met[0] * cos( phi_e[0] ) - pt2 * cos( phi[1] ) ) / ( cos( phi[0] ) );
-    // Float_t frac1 = met[0] * cos(phi_e[0]) / ( sin(theta[0]) * cos(phi[0]) );
-    // Float_t frac2 = 1 - ( tan(phi_e[0]) - tan(phi[0]) ) / ( tan(phi[1]) - tan(phi[0]) );
-    // return frac1 * frac2;
-  // };
-  // auto get_theta = [](ROOT::VecOps::RVec<Float_t> eta){
-  //   eta[0] = 2 * atan( exp( -eta[0] ) );      
-  //   eta[1] = 2 * atan( exp( -eta[1] ) );
-  //   return eta;
-  // };
-  // auto get_met = [](ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, Float_t pt1, Float_t pt2){
-  //   return ( pt1 * cos(phi[0]) + pt2 * cos(phi[1]) ) / cos(phi_e[0]);
-  // };
-  // auto get_inv_mass = [](ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> eta){
-  //   return sqrt(2 * pt[0] * pt[1] * ( cosh(eta[0] - eta[1]) - cos(phi[0] - phi[1]) ) );
-  // };
-  // auto add = [](ROOT::VecOps::RVec<Float_t> pt, Float_t pt1, Float_t pt2){
-  //   pt[0] = pt[0] + pt1;
-  //   pt[1] = pt[1] + pt2;
-  //   return pt;
-  // };
-  // auto filter_open_met = [](ROOT::VecOps::RVec<Float_t> met_eta, ROOT::VecOps::RVec<Float_t> tau_eta)
-  // {
-  //   // Useless
-  //   return abs(met_eta[0]) > abs(tau_eta[0]) && abs(met_eta[0]) > abs(tau_eta[1]);
-  // };
-
-
-  // auto filter_phi = [](ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e)
-  // {
-  //   if(phi[0] < -M_PI/2 && phi[1] > 0)
-  //   {
-  //     if(phi_e[0] < 0){phi_e[0] += 2*M_PI;}
-      
-  //     phi[0] += 2* M_PI;
-  //   }
-  //   if(phi[0] > 0 && phi[1] < -M_PI/2) //3.145192/2
-  //   {
-  //     if(phi_e[0] < 0){phi_e[0] += 2*M_PI;}
-  //     phi[1] += 2* M_PI;
-  //   }
-  //   if(phi[0] < phi[1]){return phi[0] < phi_e[0] && phi_e[0] < phi[1];}
-  //   else if(phi[0] > phi[1]){return phi[1] < phi_e[0] && phi_e[0] < phi[0];}
-  //   else{return phi[0] == phi_e[0];}
-  // };
   
-  // auto get_x2 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi_e, ROOT::VecOps::RVec<Float_t> phi){
-  //   // Float_t frac1 = (met[0] * cos(phi_e[0]) )/ (pt[1] * cos(phi[1]));
-  //   // Float_t frac2 = ( tan(phi_e[0]) - tan(phi[0]) ) / (tan(phi[1]) - tan(phi[0]));
-  //   Float_t frac1 = ( met[0] * sin(phi_e[0]) - met[0] * cos(phi_e[0]) * tan(phi[0]) ) / pt[1];
-  //   Float_t frac2 = 1 / ( sin(phi[1]) - cos(phi[1]) * tan(phi[0]) ); 
-  //     return 1 / (frac1 * frac2 + 1);};
-  // auto get_x1 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi_e, ROOT::VecOps::RVec<Float_t> phi){
-  //   Float_t frac1 = ( met[0] * cos(phi_e[0]) ) / ( pt[0] * cos(phi[0]) ); 
-  //   Float_t frac2 = 1 - ( tan(phi_e[0]) - tan(phi[0]) ) / ( tan(phi[1]) - tan(phi[0]) );
-  //   return 1 / (frac1 * frac2 + 1);};
-  // auto x_boundaries = [](Float_t x){
-  //   return 0 < x && x <= 1;};
-
-  // auto my_way = [](ROOT::VecOps::RVec<Float_t> phi)
-  // {
-  //   return (phi[0] > M_PI/2 && phi[1] < -M_PI/2) || (phi[0] < -M_PI/2 && phi[1] > M_PI/2);
-  // };
-  // auto get_angle_between = [](ROOT::VecOps::RVec<Float_t> px, ROOT::VecOps::RVec<Float_t> py, ROOT::VecOps::RVec<Float_t> pz)
-  // {
-  //   Float_t numerator = px[0] * px[1] + py[0] * py[1];
-  //   Float_t denominator = sqrt( pow( px[0], 2) + pow( py[0], 2)) * sqrt( pow( px[1], 2) + pow( py[1], 2));
-  //   return acos( numerator / denominator );
-  // };
-  // auto greater_zero = [](Float_t npt1, Float_t npt2)
-  // {
-  //   return npt1 >= 0 && npt2 >= 0;
-  // };
-  // auto pid_check = [](ROOT::VecOps::RVec<int> pids)
-  // {
-  //   size_t count{0};
-  //   for(auto pid : pids)
-  //   {
-  //     if(abs(pid) == 15){count++;}
-  //   }
-  //   return count == 2;
-  // };
-
-
-  
-  // // auto no_b2b = [](ROOT::VecOps::RVec<Float_t> phi) {
-  // // 
-  // // //   return abs(cos(phi[0] - phi[1])) < 0.95;
-  // // };
-
-  // auto wraparound_fix = [](ROOT::VecOps::RVec<Float_t> phi_jet, ROOT::VecOps::RVec<Float_t> eta_jet, ROOT::VecOps::RVec<Float_t> pt_jet, ROOT::VecOps::RVec<Float_t> phi_met, ROOT::VecOps::RVec<Float_t> eta_met, ROOT::VecOps::RVec<Float_t> met)
-  // {
-  //   Float_t px1{ pt_jet[0] * cos(phi_jet[0]) };
-  //   Float_t py1{ pt_jet[0] * sin(phi_jet[0]) };
-  //   Float_t pz1{ pt_jet[0] * sinh(eta_jet[0]) };
-  //   Float_t p1{ static_cast<Float_t>(sqrt (  pow(px1, 2) + pow(py1, 2) + pow(pz1, 2) ) ) };
-  //   Float_t px2{ pt_jet[1] * cos( phi_jet[1] ) };
-  //   Float_t py2{ pt_jet[1] * sin( phi_jet[1] )};
-  //   Float_t pz2{ pt_jet[1] * sinh( eta_jet[1] ) };
-  //   Float_t p2{ static_cast<Float_t>(sqrt( pow(px2, 2) + pow(py2, 2) + pow(pz2, 2) )) };
-  //   Float_t ex{ met[0] * cos(phi_met[0] ) };
-  //   Float_t ey{ met[0] * sin(phi_met[0] ) };
-  //   Float_t ez{ met[0] * sinh(eta_met[0] )};
-  //   Float_t em{ static_cast<Float_t>(sqrt( pow(ex,2) + pow(ey, 2) + pow(ez, 2) ) )};
-      //  this is wrong
-  //   Float_t jet_angle = acos( (px1 * px2 + py1 * py2 + pz1 * pz2) / (p1 * p2) );
-  //   Float_t jet_met_1_angle = acos( (px1 * ex + py1 * ey + pz1 *ez) / (p1 * em) );
-  //   Float_t jet_met_2_angle = acos( (px2 * ex + py2 * ey + pz2 * ez) / (p2 * em) );
-
-  //   return abs(jet_met_1_angle + jet_met_2_angle - jet_angle ) / jet_angle  < 0.1;
-  // };
-
-  // fd.Filter(size_of, {"Jet_TauTagIndicies"});
-  
-   // fd.Filter(filter_open_met, {"MissingET.Eta", "Jet_TauTagEta"});
-  // // fd.Define("x2", get_x2, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
-  // // fd.Define("x1", get_x1, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
-  // // fd.Filter(x_boundaries, {"x2"});
-  // // fd.Filter(x_boundaries, {"x1"});
-  // // fd.Filter(filter_phi, {"Jet_TauTagPhi", "MissingET.Phi"});
-  // // fd.Filter(my_way, {"Jet_TauTagPhi"});
-  // // fd.Filter(no_b2b, {"Jet_TauTagPhi"});
-  // // fd.Define("NeutrinoTheta", get_theta, {"Jet_TauTagEta"});
-  fd.Define("AngleBetweenMET", LFuncs::met_jet_ang, {"MissingET.Phi", "Jet_DTauTagPhi"});
-  fd.Define("Neutrino_PT2", LFuncs::get_col_neutrinopt2, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi"});
-  fd.Define("Neutrino_PT1", LFuncs::get_col_neutrinopt1, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT2"});
-  // fd.Filter(greater_zero, {"Neutrino_PT1", "Neutrino_PT2"});
-  //fd.Define("MET_TEST", get_met, {"Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT1", "Neutrino_PT2"});
-  fd.Define("Jet_TauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_TauTagPT", "Neutrino_PT1", "Neutrino_PT2"});
-  fd.Define("TauJetInvMass", LFuncs::inv_mass_ml, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
-  fd.Define("TauJetInvMassWithNeutrino", LFuncs::inv_mass_ml, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
-  fd.Define("TauJetDeltaR", LFuncs::get_DeltaR, {"Jet_TauTagPhi", "Jet_TauTagEta"});
-
-  // fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "AngleMET2times10to-6");
-
-
-  // // fd.Filter(pid_check, {"Particle.PID"});
 }
 void DataBase::TruthAnalysis(DataStructs::FrameAndData& fd){
   // truth analysis was all about matching the generator level particles to the jets and calculating the relevant quantities such
@@ -215,6 +80,9 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   // PrintOff Truth Neutrino PT and reco Neutrino PT
   auto print_neut= [](ROOT::VecOps::RVec<Float_t> neutrino_pt, ROOT::VecOps::RVec<int> status){
     cout <<"tau_pt: " << neutrino_pt  << " status: " << status <<  "\n";  
+  };
+  auto jetbnum = [](int jetBnum){
+    return jetBnum ==2;
   };
 
   fd.Define("NeutrinoPT2", LFuncs::get_col_neutrinopt2, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi"});
@@ -249,9 +117,15 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   // fd.Filter(SC::met_angle_diff_fine, {"AngleBetweenTruthMET"}, "TruthMETbetweenJets2E-6");
 
   // fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "METbetweenJets0p025");
+  // fd.Filter(SC::size_0, {"Electron.PT", "Muon.PT"}, "NoLep");
+  // fd.Filter(jetbnum, {"Jet_BNum"}, "2BJets");
+  // fd.Filter(SC::jet_number_cut, {"Jet_Num"}, "g4jet"); 
   fd.Filter(SC::met_angle_diff_fine, {"AngleBetweenMET"}, "METbetweenJets2E-6");
+  
   // fd.Filter(SC::norm_truth_reco_diff_cut, {"NormalisedDifferenceBetweenTruthRecoMET"}, "METNormDiff0p3");
   fd.Filter(SC::deltaRcut0p3, {"DeltaRJetTauSel"}, "DeltaRCut0p3");
+  // fd.Filter(SC::truth_and_fake_cut, {"DeltaRJetTauSel"}, "1Truth1Fake");
+  // fd.Filter(SC::all_fake, {"DeltaRJetTauSel"}, "allFake");
   // fd.Filter(SC::pt_tau_cut, {"Jet_DTauTagPT"}, "jetptg20");
   // fd.Filter(SC::gen_inv_mass_g20, {"GenTauInvMass"}, "GenTauInvMassG20");
   // fd.Filter(SC::deltaRcut0p2, {"DeltaRJetTauSel"}, "DeltaRCut0p2");
@@ -278,7 +152,7 @@ void DataBase::MomentumTest(DataStructs::FrameAndData& fd){
 
 void analysis_procedure(string analysis_mode, string mode){
   vector<string> files = BackEnd::load_files(analysis_mode);
-  string outputFileName = DataBase::fnames[analysis_mode];
+  string outputFileName = DataBase::database[analysis_mode].fname;
   // HistInfo: {name of hist, x axis title, Column name, nbins, lbound, ubound, units, offset by .5}
 
   // Analysis code
@@ -286,20 +160,20 @@ void analysis_procedure(string analysis_mode, string mode){
   FrameAndData fd{FrameAndData(mode, files)};
   cout<<"PreProcessColumns'\n";
   BackEnd::pre_process_columns(fd);
-  BackEnd::initial_cut(fd, DataBase::broad_cuts[analysis_mode]);
+  BackEnd::initial_cut(fd, DataBase::database[analysis_mode].sel_cuts);
   // Analyse
   cout<<"Analysing\n";
-  DataBase::analysis_funcs[analysis_mode](fd);
+  DataBase::database[analysis_mode].a_func(fd);
   cout<<"Plotting\n";
-  BackEnd::plot(outputFileName + fd.save_string, fd, DataBase::histograms[analysis_mode]);
-  BackEnd::save_hist_info(outputFileName, DataBase::histograms[analysis_mode]);
+  BackEnd::plot(outputFileName + fd.save_string, fd, DataBase::database[analysis_mode].hists);
+  BackEnd::save_hist_info(outputFileName, DataBase::database[analysis_mode].hists);
 }
 
 void GeneralAnalyser()
 {
   // Loading Info
   string mode{"Delphes"};
-  vector<string> analysis_modes{"SelectionCut"};
+  vector<string> analysis_modes{"GenLevel"};
   for(auto analysis_mode : analysis_modes){
     cout<<"\n"<<analysis_mode<<" Analysis\n\n";
     analysis_procedure(analysis_mode, mode);

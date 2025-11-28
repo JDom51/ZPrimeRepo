@@ -38,23 +38,28 @@ namespace DataStructs
   {
     string name;
     string x_axis;
-    string column;
+    vector<string> columns;
     int nbins;
     double lbound;
     double ubound;
     string units;
     bool take_point_five;
-    HistInfo(string nam, string x_ax, string m_column, int bins, double lowbound, double upbound, string unit) : name{nam}, x_axis{x_ax}, column{m_column}, nbins{bins}, lbound{lowbound}, ubound{upbound}, units{unit}, take_point_five{false} {}
-    HistInfo(string nam, string x_ax, string m_column, int bins, double lowbound, double upbound, string unit, bool m_take_point_five) : name{nam}, x_axis{x_ax},  column{m_column}, nbins{bins}, lbound{lowbound}, ubound{upbound}, units{unit}, take_point_five{m_take_point_five} {}
-    void update_column(string override_column){
-      column=override_column;
+    unsigned int mode; // 0 : histo1d, 1 : stacked histo1d, 2: scatter plot 
+    HistInfo(string nam, string x_ax, string m_column, int bins, double lowbound, double upbound, string unit) : 
+      name{nam}, x_axis{x_ax}, columns{{m_column}}, nbins{bins}, lbound{lowbound}, ubound{upbound}, units{unit}, take_point_five{false}, mode{0} {}
+    HistInfo(string nam, string x_ax, string m_column, int bins, double lowbound, double upbound, string unit, bool m_take_point_five) : 
+      name{nam}, x_axis{x_ax},  columns{{m_column}}, nbins{bins}, lbound{lowbound}, ubound{upbound}, units{unit}, take_point_five{m_take_point_five}, mode{0} {}
+    HistInfo(string nam, string x_ax, vector<string> m_columns, int bins, double lowbound, double upbound, string unit, unsigned int m_mode) : 
+      name{nam}, x_axis{x_ax}, columns{m_columns}, nbins{bins}, lbound{lowbound}, ubound{upbound}, units{unit}, take_point_five{false}, mode{m_mode} {}
+    void update_column(vector<string> override_column){
+      columns=override_column;
     }
   };
   struct HistInfoPair{
     HistInfo info;
-    string override_column;
-    HistInfoPair(HistInfo m_info, string m_override_column="") : info{m_info}, override_column{m_override_column}{
-      if(override_column != ""){
+    vector<string> override_column;
+    HistInfoPair(HistInfo m_info, vector<string> m_override_column={}) : info{m_info}, override_column{m_override_column}{
+      if(m_override_column.size() != 0){
         info.update_column(override_column);
       }
     };
@@ -72,6 +77,14 @@ namespace DataStructs
     size_t integral;
     Integral(T sel_cut_value) : value{sel_cut_value}, integral{0} {};
     void add(bool result){integral += result;}
+  };
+  typedef void (*AnalysisFunc)(FrameAndData& fd);
+  struct DataBase{
+    vector<string> ifiles;
+    AnalysisFunc a_func;
+    vector<SelectionCut> sel_cuts;
+    string fname;
+    vector<HistInfo> hists;
   };
 };
 #endif

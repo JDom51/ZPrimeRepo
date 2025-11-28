@@ -1,0 +1,150 @@
+// cout << fd.node.GetColumnType("MissingET.MET") << "\n";
+  // auto size_of = [](ROOT::VecOps::RVec<unsigned int> tautag_indicies){return tautag_indicies.size() == 2;};
+  // auto get_pt2 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e){
+    // ROOT::VecOps::RVec<Float_t> pt2{};
+    // pt2.push_back(met[0] * ( sin(phi_e[0]) - cos(phi_e) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi_e[0]) ) );
+    // return met[0] * ( sin(phi_e[0]) - cos(phi_e[0]) * tan(phi[0]) ) / ( sin(phi[1]) - cos(phi[1]) * tan(phi[0]) );
+    // Float_t frac1 = met[0] * cos(phi_e[0]) / ( sin(theta[1]) * cos(phi[1]) );
+    // Float_t frac2 = ( tan(phi_e[0]) - tan(phi[0]) ) / ( tan(phi[1]) - tan(phi[0]) );
+    // return frac1 * frac2;
+  // };
+  // auto get_pt1 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, Float_t pt2){
+    // ROOT::VecOps::RVec<Float_t> pt1{};
+    // pt1.push_back((met[0] * cos( phi_e[0] ) - pt2[0] * cos( phi[1] ) ) / ( cos( phi[0] ) ) );
+    // return (met[0] * cos( phi_e[0] ) - pt2 * cos( phi[1] ) ) / ( cos( phi[0] ) );
+    // Float_t frac1 = met[0] * cos(phi_e[0]) / ( sin(theta[0]) * cos(phi[0]) );
+    // Float_t frac2 = 1 - ( tan(phi_e[0]) - tan(phi[0]) ) / ( tan(phi[1]) - tan(phi[0]) );
+    // return frac1 * frac2;
+  // };
+  // auto get_theta = [](ROOT::VecOps::RVec<Float_t> eta){
+  //   eta[0] = 2 * atan( exp( -eta[0] ) );      
+  //   eta[1] = 2 * atan( exp( -eta[1] ) );
+  //   return eta;
+  // };
+  // auto get_met = [](ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e, Float_t pt1, Float_t pt2){
+  //   return ( pt1 * cos(phi[0]) + pt2 * cos(phi[1]) ) / cos(phi_e[0]);
+  // };
+  // auto get_inv_mass = [](ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> eta){
+  //   return sqrt(2 * pt[0] * pt[1] * ( cosh(eta[0] - eta[1]) - cos(phi[0] - phi[1]) ) );
+  // };
+  // auto add = [](ROOT::VecOps::RVec<Float_t> pt, Float_t pt1, Float_t pt2){
+  //   pt[0] = pt[0] + pt1;
+  //   pt[1] = pt[1] + pt2;
+  //   return pt;
+  // };
+  // auto filter_open_met = [](ROOT::VecOps::RVec<Float_t> met_eta, ROOT::VecOps::RVec<Float_t> tau_eta)
+  // {
+  //   // Useless
+  //   return abs(met_eta[0]) > abs(tau_eta[0]) && abs(met_eta[0]) > abs(tau_eta[1]);
+  // };
+
+
+  // auto filter_phi = [](ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> phi_e)
+  // {
+  //   if(phi[0] < -M_PI/2 && phi[1] > 0)
+  //   {
+  //     if(phi_e[0] < 0){phi_e[0] += 2*M_PI;}
+      
+  //     phi[0] += 2* M_PI;
+  //   }
+  //   if(phi[0] > 0 && phi[1] < -M_PI/2) //3.145192/2
+  //   {
+  //     if(phi_e[0] < 0){phi_e[0] += 2*M_PI;}
+  //     phi[1] += 2* M_PI;
+  //   }
+  //   if(phi[0] < phi[1]){return phi[0] < phi_e[0] && phi_e[0] < phi[1];}
+  //   else if(phi[0] > phi[1]){return phi[1] < phi_e[0] && phi_e[0] < phi[0];}
+  //   else{return phi[0] == phi_e[0];}
+  // };
+  
+  // auto get_x2 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi_e, ROOT::VecOps::RVec<Float_t> phi){
+  //   // Float_t frac1 = (met[0] * cos(phi_e[0]) )/ (pt[1] * cos(phi[1]));
+  //   // Float_t frac2 = ( tan(phi_e[0]) - tan(phi[0]) ) / (tan(phi[1]) - tan(phi[0]));
+  //   Float_t frac1 = ( met[0] * sin(phi_e[0]) - met[0] * cos(phi_e[0]) * tan(phi[0]) ) / pt[1];
+  //   Float_t frac2 = 1 / ( sin(phi[1]) - cos(phi[1]) * tan(phi[0]) ); 
+  //     return 1 / (frac1 * frac2 + 1);};
+  // auto get_x1 = [](ROOT::VecOps::RVec<Float_t> met, ROOT::VecOps::RVec<Float_t> pt, ROOT::VecOps::RVec<Float_t> phi_e, ROOT::VecOps::RVec<Float_t> phi){
+  //   Float_t frac1 = ( met[0] * cos(phi_e[0]) ) / ( pt[0] * cos(phi[0]) ); 
+  //   Float_t frac2 = 1 - ( tan(phi_e[0]) - tan(phi[0]) ) / ( tan(phi[1]) - tan(phi[0]) );
+  //   return 1 / (frac1 * frac2 + 1);};
+  // auto x_boundaries = [](Float_t x){
+  //   return 0 < x && x <= 1;};
+
+  // auto my_way = [](ROOT::VecOps::RVec<Float_t> phi)
+  // {
+  //   return (phi[0] > M_PI/2 && phi[1] < -M_PI/2) || (phi[0] < -M_PI/2 && phi[1] > M_PI/2);
+  // };
+  // auto get_angle_between = [](ROOT::VecOps::RVec<Float_t> px, ROOT::VecOps::RVec<Float_t> py, ROOT::VecOps::RVec<Float_t> pz)
+  // {
+  //   Float_t numerator = px[0] * px[1] + py[0] * py[1];
+  //   Float_t denominator = sqrt( pow( px[0], 2) + pow( py[0], 2)) * sqrt( pow( px[1], 2) + pow( py[1], 2));
+  //   return acos( numerator / denominator );
+  // };
+  // auto greater_zero = [](Float_t npt1, Float_t npt2)
+  // {
+  //   return npt1 >= 0 && npt2 >= 0;
+  // };
+  // auto pid_check = [](ROOT::VecOps::RVec<int> pids)
+  // {
+  //   size_t count{0};
+  //   for(auto pid : pids)
+  //   {
+  //     if(abs(pid) == 15){count++;}
+  //   }
+  //   return count == 2;
+  // };
+
+
+  
+  // // auto no_b2b = [](ROOT::VecOps::RVec<Float_t> phi) {
+  // // 
+  // // //   return abs(cos(phi[0] - phi[1])) < 0.95;
+  // // };
+
+  // auto wraparound_fix = [](ROOT::VecOps::RVec<Float_t> phi_jet, ROOT::VecOps::RVec<Float_t> eta_jet, ROOT::VecOps::RVec<Float_t> pt_jet, ROOT::VecOps::RVec<Float_t> phi_met, ROOT::VecOps::RVec<Float_t> eta_met, ROOT::VecOps::RVec<Float_t> met)
+  // {
+  //   Float_t px1{ pt_jet[0] * cos(phi_jet[0]) };
+  //   Float_t py1{ pt_jet[0] * sin(phi_jet[0]) };
+  //   Float_t pz1{ pt_jet[0] * sinh(eta_jet[0]) };
+  //   Float_t p1{ static_cast<Float_t>(sqrt (  pow(px1, 2) + pow(py1, 2) + pow(pz1, 2) ) ) };
+  //   Float_t px2{ pt_jet[1] * cos( phi_jet[1] ) };
+  //   Float_t py2{ pt_jet[1] * sin( phi_jet[1] )};
+  //   Float_t pz2{ pt_jet[1] * sinh( eta_jet[1] ) };
+  //   Float_t p2{ static_cast<Float_t>(sqrt( pow(px2, 2) + pow(py2, 2) + pow(pz2, 2) )) };
+  //   Float_t ex{ met[0] * cos(phi_met[0] ) };
+  //   Float_t ey{ met[0] * sin(phi_met[0] ) };
+  //   Float_t ez{ met[0] * sinh(eta_met[0] )};
+  //   Float_t em{ static_cast<Float_t>(sqrt( pow(ex,2) + pow(ey, 2) + pow(ez, 2) ) )};
+      //  this is wrong
+  //   Float_t jet_angle = acos( (px1 * px2 + py1 * py2 + pz1 * pz2) / (p1 * p2) );
+  //   Float_t jet_met_1_angle = acos( (px1 * ex + py1 * ey + pz1 *ez) / (p1 * em) );
+  //   Float_t jet_met_2_angle = acos( (px2 * ex + py2 * ey + pz2 * ez) / (p2 * em) );
+
+  //   return abs(jet_met_1_angle + jet_met_2_angle - jet_angle ) / jet_angle  < 0.1;
+  // };
+
+  // fd.Filter(size_of, {"Jet_TauTagIndicies"});
+  
+   // fd.Filter(filter_open_met, {"MissingET.Eta", "Jet_TauTagEta"});
+  // // fd.Define("x2", get_x2, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
+  // // fd.Define("x1", get_x1, {"MissingET.MET", "Jet_TauTagPT", "MissingET.Phi", "Jet_TauTagPhi"});
+  // // fd.Filter(x_boundaries, {"x2"});
+  // // fd.Filter(x_boundaries, {"x1"});
+  // // fd.Filter(filter_phi, {"Jet_TauTagPhi", "MissingET.Phi"});
+  // // fd.Filter(my_way, {"Jet_TauTagPhi"});
+  // // fd.Filter(no_b2b, {"Jet_TauTagPhi"});
+  // // fd.Define("NeutrinoTheta", get_theta, {"Jet_TauTagEta"});
+  fd.Define("AngleBetweenMET", LFuncs::met_jet_ang, {"MissingET.Phi", "Jet_DTauTagPhi"});
+  fd.Define("Neutrino_PT2", LFuncs::get_col_neutrinopt2, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi"});
+  fd.Define("Neutrino_PT1", LFuncs::get_col_neutrinopt1, {"MissingET.MET", "Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT2"});
+  // fd.Filter(greater_zero, {"Neutrino_PT1", "Neutrino_PT2"});
+  //fd.Define("MET_TEST", get_met, {"Jet_TauTagPhi", "MissingET.Phi", "Neutrino_PT1", "Neutrino_PT2"});
+  fd.Define("Jet_TauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_TauTagPT", "Neutrino_PT1", "Neutrino_PT2"});
+  fd.Define("TauJetInvMass", LFuncs::inv_mass_ml, {"Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
+  fd.Define("TauJetInvMassWithNeutrino", LFuncs::inv_mass_ml, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
+  fd.Define("TauJetDeltaR", LFuncs::get_DeltaR, {"Jet_TauTagPhi", "Jet_TauTagEta"});
+
+  // fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "AngleMET2times10to-6");
+
+
+  // // fd.Filter(pid_check, {"Particle.PID"});
