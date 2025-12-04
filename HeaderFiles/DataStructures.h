@@ -72,12 +72,16 @@ namespace DataStructs
     vector<string> variables;
     SelectionCut(BroadCut m_selection_cut, vector<string> m_variables) : selection_cut{m_selection_cut}, variables{m_variables} {};
   };
+  
+  // template<typename T> using GenSelectionCut = bool (*)(vector<T> columns);
+
   template<typename T> struct Integral{
     T value;
     size_t integral;
     Integral(T sel_cut_value) : value{sel_cut_value}, integral{0} {};
     void add(bool result){integral += result;}
   };
+
   typedef void (*AnalysisFunc)(FrameAndData& fd);
   struct DataBase{
     vector<string> ifiles;

@@ -5,6 +5,8 @@
 #include<cmath>
 using std::string;
 using std::vector;
+template<typename T>
+using RV = ROOT::VecOps::RVec<T>;
 
 Float_t get_index(ROOT::VecOps::RVec<Float_t> possible_pairs, vector<int> indicies)
 {
@@ -85,6 +87,24 @@ namespace LFuncs
     }
     return new_var;
   };
+  RV<Float_t> combine(RV<Float_t> vec1, RV<Float_t> vec2){
+    RV<Float_t> nvec{};
+    for(auto v : vec1){
+      nvec.push_back(v);
+    } for(auto v : vec2){
+      nvec.push_back(v);
+    }
+    return nvec;
+  }
+  RV<int> combine_int(RV<int> vec1, RV<int> vec2){
+    RV<int> nvec{};
+    for(auto v : vec1){
+      nvec.push_back(v);
+    } for(auto v : vec2){
+      nvec.push_back(v);
+    }
+    return nvec;
+  }
   ROOT::VecOps::RVec<Float_t> not_use_indicies(ROOT::VecOps::RVec<Float_t> var, ROOT::VecOps::RVec<unsigned int> indicies){
     ROOT::VecOps::RVec<Float_t> new_var{};
     for(int i{0}; i < var.size(); i++){
@@ -266,7 +286,10 @@ namespace LFuncs
   {
     return abs( acos( cos(phi1) * cos( phi2 )  + sin(phi1) * sin(phi2) ) );
   }
-
+  Float_t get_delta_phi_semilep(RV<Float_t> phi1, RV<Float_t> phi2)
+  {
+    return abs( acos( cos(phi1[0]) * cos( phi2[0] )  + sin(phi1[0]) * sin(phi2[0]) ) );
+  }
   ROOT::VecOps::RVec<unsigned int> get_tau_indicies(ROOT::VecOps::RVec<int> pid, ROOT::VecOps::RVec<int> status, ROOT::VecOps::RVec<Float_t> particle_pt)
   {
     ROOT::VecOps::RVec<unsigned int> tau_indicies{};
@@ -292,6 +315,14 @@ namespace LFuncs
     return muon_indicies;
   }
   
+  ROOT::VecOps::RVec<Float_t> get_transverse_mass(ROOT::VecOps::RVec<Float_t> energy, ROOT::VecOps::RVec<Float_t> pz){
+    ROOT::VecOps::RVec<Float_t> transverse_mass{};
+    for(int i{0}; i < energy.size(); i++){
+      transverse_mass.push_back(sqrt(energy[i] * energy[i] - pz[i] * pz[i]));
+    }
+    return transverse_mass;
+  }
+
   ROOT::VecOps::RVec<unsigned int> get_tau_neutrino_indicies(ROOT::VecOps::RVec<int> pid, ROOT::VecOps::RVec<int> status, ROOT::VecOps::RVec<unsigned int> intermediate_indicies){
     ROOT::VecOps::RVec<unsigned int> tau_neutrino_indicies{};
     ROOT::VecOps::RVec<unsigned int> final_tau_neutrino_indicies{};
@@ -338,87 +369,86 @@ namespace LFuncs
     }
     return {atan(truth_met_y/truth_met_x)};
   }
-  ROOT::VecOps::RVec<Float_t> get_delta_r_1(ROOT::VecOps::RVec<Float_t> eta_tau, ROOT::VecOps::RVec<Float_t> eta_jet, ROOT::VecOps::RVec<Float_t> phi_tau, ROOT::VecOps::RVec<Float_t> phi_jet)
-  {
-    ROOT::VecOps::RVec<Float_t> delta_r{};
-    int size{};
-    for(int j{0}; j < eta_jet.size(); j++)
-    {
-      delta_r.push_back( sqrt( pow( eta_tau[0] - eta_jet[j] ,2) + pow( get_delta_phi_special(phi_tau[0], phi_jet[j]) , 2) ) );
-    }
-    return delta_r;
-  }
   Float_t met_jet_ang(ROOT::VecOps::RVec<Float_t> met_phi, ROOT::VecOps::RVec<Float_t> tau_phi){
     Float_t taumet1 = get_delta_phi_special(met_phi[0], tau_phi[0]);
     Float_t taumet2 = get_delta_phi_special(met_phi[0], tau_phi[1]);
     Float_t tautau12 = get_delta_phi_special(tau_phi[0], tau_phi[1]);
-    return abs(taumet1 + taumet2 - tautau12); 
+    return abs(taumet1 + taumet2 - tautau12);
   }
-  ROOT::VecOps::RVec<Float_t> get_delta_r_2(ROOT::VecOps::RVec<Float_t> eta_tau, ROOT::VecOps::RVec<Float_t> eta_jet, ROOT::VecOps::RVec<Float_t> phi_tau, ROOT::VecOps::RVec<Float_t> phi_jet)
-  {
-    ROOT::VecOps::RVec<Float_t> delta_r{};
-    int size{}; 
-    for(int j{0}; j < eta_jet.size(); j++)
-    {
-      delta_r.push_back( sqrt( pow( eta_tau[1] - eta_jet[j] ,2) + pow( get_delta_phi_special(phi_tau[1], phi_jet[j]) , 2) ) );
+  Float_t calc_delta_r_(Float_t phi_1, Float_t eta_1, Float_t phi_2, Float_t eta_2){
+    return sqrt((phi_1 - phi_2) * (phi_1 - phi_2) + (eta_1 - eta_2) * (eta_1 - eta_2));
+  }
+  Float_t calc_delta_r(RV<Float_t> phi, RV<Float_t> eta){
+    return sqrt((phi[0] - phi[1]) * (phi[0] - phi[1]) + (eta[0] - eta[1]) * (eta[0] - eta[1]));
+  }
+
+  RV<vector<Float_t>> get_delta_r(RV<Float_t> delta_phi_jet, RV<Float_t> delta_eta_jet, RV<Float_t> delta_phi_tau, RV<Float_t> delta_eta_tau){
+    RV<vector<Float_t>> delta_r{};
+    for(int i{0}; i < delta_phi_tau.size(); i++){
+      vector<Float_t> row{};
+      for(int j{0}; j < delta_phi_jet.size(); j++){
+        row.push_back(calc_delta_r_(delta_phi_tau[i], delta_eta_tau[i], delta_phi_jet[j], delta_eta_jet[j]));
+      }
+      delta_r.push_back(row);
     }
+    // gets a table of delta rs tau1 : {j1 j2 .. jn}
+    //                          tau2 : {j1 j2 .. jn} etc.
     return delta_r;
   }
-  Float_t get_DeltaR(ROOT::VecOps::RVec<Float_t> phi, ROOT::VecOps::RVec<Float_t> eta){
-    return sqrt(pow(phi[0] - phi[1], 2) + pow(eta[0] - eta[1], 2));
+  template<typename T> void printing(vector<T> v){
+    for(auto vi : v){
+      cout << vi << ", ";
+    }
   }
-  ROOT::VecOps::RVec<unsigned int> get_delta_r_indicies(ROOT::VecOps::RVec<Float_t>& delta_r_1, ROOT::VecOps::RVec<float_t>& delta_r_2)
-  {
-    Float_t minimum_value{10000};
-    ROOT::VecOps::RVec<unsigned int> indicies{0, 0};
-    if(delta_r_1.size() == 1 || delta_r_2.size() == 1){return {};}
 
-    for(int i{0}; i < delta_r_1.size(); i++)
-    {
-      for(int j{0}; j < delta_r_2.size(); j++)
-      {
-        if(i == j){continue;}
-        if(delta_r_1[i] + delta_r_2[j] < minimum_value)
-        {
-          minimum_value = delta_r_1[i] + delta_r_2[j];
-          indicies[0] = i;
-          indicies[1] = j;
+  RV<vector<unsigned int>> get_truth_match(RV<vector<Float_t>> delta_rs){
+    RV<vector<unsigned int>> truth_match{};
+    // cout << "Iteration\n";
+    for(int i{0}; i < delta_rs.size(); i++){
+      vector<unsigned int> row{};
+      Float_t curr_mini{1000};
+      int curr_mini_ind{-1};
+      for(int j{0}; j < delta_rs[i].size(); j++){
+        // if(delta_rs[i][j] < 0.3){
+          // row.push_back(1);
+          if(delta_rs[i][j] < curr_mini){
+            row.push_back(1);
+            curr_mini_ind = j;
+            curr_mini = delta_rs[i][j];
+          // }
+        } else {
+          row.push_back(0);
         }
       }
-      // this line means that there is only 1 delta r for1 and 2 so there would only be a single 
+      if(curr_mini_ind != -1){row[curr_mini_ind] = 2;}
+      // cout << "size: "<< delta_rs[i].size() <<" delta_rs "; printing(delta_rs[i]); cout << "\n";
+      // cout<<"row "; printing(row); cout <<"\n";
+      truth_match.push_back(row);
     }
-    // cout<<indicies[0] << " " << indicies[1]  << " " << delta_r_1 << " " << delta_r_2 << "\n";
-    if(indicies[0] == indicies[1]){return {};}
-    return indicies;
-  };
-  ROOT::VecOps::RVec<unsigned int> get_delta_r_indicies_truthjet(ROOT::VecOps::RVec<Float_t>& delta_r_1, ROOT::VecOps::RVec<float_t>& delta_r_2, ROOT::VecOps::RVec<Float_t>& tau_jet_weight)
-  {
-    Float_t minimum_value{10000};
-    ROOT::VecOps::RVec<unsigned int> indicies{0, 0};
-    if(delta_r_1.size() == 1 || delta_r_2.size() == 1){return {};}
-
-    for(int i{0}; i < delta_r_1.size(); i++)
-    {
-      for(int j{0}; j < delta_r_2.size(); j++)
-      {
-        if(i == j){continue;}
-        if(delta_r_1[i]/tau_jet_weight[i] + delta_r_2[j]/tau_jet_weight[j] < minimum_value)
-        {
-          minimum_value = delta_r_1[i] + delta_r_2[j];
-          indicies[0] = i;
-          indicies[1] = j;
-        }
-      }
-      // this line means that there is only 1 delta r for1 and 2 so there would only be a single 
-    }
-    // cout<<indicies[0] << " " << indicies[1]  << " " << delta_r_1 << " " << delta_r_2 << "\n";
-    if(indicies[0] == indicies[1]){return {};}
-    return indicies;
-  };
-  ROOT::VecOps::RVec<Float_t> use_delr_indicies(ROOT::VecOps::RVec<Float_t> delr1, ROOT::VecOps::RVec<Float_t> delr2, ROOT::VecOps::RVec<unsigned int> delr_indicies)
-  {
-    return {delr1[delr_indicies[0]], delr2[delr_indicies[1]]};
+  return truth_match;
   }
+  RV<unsigned int> get_truth_match_indicies(RV<vector<unsigned int>> truth_match){
+    vector<unsigned int> indicies{};
+    for(int i{0}; i < truth_match.size(); i++){
+      for(int j{0}; j < truth_match[i].size(); j++){
+        if(truth_match[i][j] == 2){indicies.push_back(j);}
+      }
+//      auto pos{std::distance(truth_match[i].begin(), std::find(truth_match[i].begin(), truth_match[i].end(), 2))};
+//      if(std::find(indicies.begin(), indicies.end(), pos) == indicies.end() ){
+//        indicies.push_back(pos);
+//      }// else {cout<<"WE HAVE A PROBLEM\n";}
+    }
+    return indicies;
+  }
+
+  RV<Float_t> get_truth_match_indicies_dr(RV<unsigned int> tm_indicies, RV<vector<Float_t>> drs){
+    RV<Float_t> sel_drs{};
+    for(int i{0}; i < tm_indicies.size(); i++){
+      sel_drs.push_back(drs[i][tm_indicies[i]]);
+    }
+    return sel_drs;
+  }
+  
 } // LFuncs
 
 #endif 

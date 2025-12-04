@@ -3,6 +3,14 @@
 namespace SC
 {
   // Broad selection cut is defined as a basic cut needed to start analysis.
+
+  bool semileptonic_cut(RV<int> tau_charge, RV<int> lep_charge){
+    return (tau_charge.size() == 1 && lep_charge.size() == 1) && (tau_charge[0] + lep_charge[0] == 0);
+  }
+
+  bool opp_sign(RV<int> charge){
+    return charge[0] + charge[1] == 0;
+  }
   bool size_2(ROOT::VecOps::RVec<unsigned int> indicies){
     return indicies.size() == 2;
   }
@@ -20,6 +28,9 @@ namespace SC
   }
   bool met_angle_diff_fine(Float_t angle_diff){
     return angle_diff < 2 * pow(10, -6);
+  }
+  bool met_angle_diff_less_fine(Float_t angle_diff){
+    return angle_diff < 3 * pow(10, -6);
   }
   bool gen_inv_mass_g20(Float_t mass){
     return mass > 20;
@@ -56,7 +67,7 @@ namespace SC
     return delta_phi >=1.5;
   }
   bool jet_number_cut(int size){
-    return size > 4;
+    return size > 5;
   }
   bool  deltaRcut0p2(ROOT::VecOps::RVec<Float_t> DeltaR){
     bool result{DeltaR.size() != 0};
@@ -75,7 +86,8 @@ namespace SC
   bool truth_and_fake_cut(ROOT::VecOps::RVec<Float_t> DeltaR){
     bool truth{false};
     bool fake{false};
-    for(auto DR: DeltaR){
+    for(int i{0}; i < 2; i++){
+      Float_t DR = DeltaR[i];
       if(!truth && DR < 0.3){truth = true;}
       if(!fake && DR > 0.3){fake = true;}
     }

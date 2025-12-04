@@ -16,8 +16,16 @@ namespace DataBase{
   void SelectionCutAnalysis(FrameAndData& fd);
   void EAnalysis(FrameAndData& fd);
   void MomentumTest(FrameAndData& fd);
+  void SemiLeptonicAnalysis(DataStructs::FrameAndData& fd);
   
-
+  // map<string, DataStructs::GenSelectionCut> sel_cuts{
+  //   {"DeltaPhi2", SC::delta_phi_2}
+  // };
+  map<string, float_t> weighting{
+    {"Raw", 1},
+    {"OpenData", 0.0028},
+    {"run2", 0.011}
+  };
   map<string, vector<string>> data_sets{
     {"pptata_exh", {"jdombrowski,pptata_exh_run_01", "jdombrowski,pptata_exh_run_02",
                       "jdombrowski,pptata_exh_run_03", "jdombrowski,pptata_exh_run_04",
@@ -53,7 +61,9 @@ namespace DataBase{
     {"NoCut",
             {data_sets["pptttata_exh"], *NoCut, {}, "NoCut",
                 {
-                    {"Number of Jets", "Number", "Jet_Num", 10, 0, 10, "", true},
+                    {"Number of Jets", "Number", "Jet_Num", 20, 0, 20, "", true},
+                    {"GenLep_Num", "Number", "GenLep_Num", 20, 0, 20, "", true},
+                    {"Number of DTauTag", "Number", "Jet_DTauNum", 10, 0, 10, "", true},
                     {"MissingET", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
                     {"Number Of BJets", "Number", "Jet_BNum", 10, 0, 10, "", true},
                     {"TauJetPT", "PT", "Jet_TauTagPT", 200, 0, 200, "GeV"},
@@ -103,21 +113,25 @@ namespace DataBase{
             {data_sets["pptttata_exh"], *Analyse, {{size_2, {"Jet_TauTagIndicies"}}}, "Ztata Reco",
                 {
                     {"MET", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
+                    {"Delta Phi Between two tau tagged jets", "\\Delta \\phi", "TauTagJetDeltaPhi", 100, 0, 4, "rad"},
                     {"Inv Mass without Neutrinos", "IMass", "TauJetInvMass", 200, 0, 200, "GeV"},
-                    {"Neutrino PT1", "PT", "Neutrino_PT1", 200, 0, 200, "GeV"},
-                    {"Neutrino PT2", "PT", "Neutrino_PT2", 200, 0, 200, "GeV"},
+                    {"Neutrino PT1", "PT", "NeutrinoPT1", 200, 0, 200, "GeV"},
+                    {"Neutrino PT2", "PT", "NeutrinoPT2", 200, 0, 200, "GeV"},
                     {"Inv Mass with Neutrinos", "IMass", "TauJetInvMassWithNeutrino", 200, 0, 200, "GeV"},
-                    {"Number of Jets", "Num", "Jet_Num", 10, 0, 10, "", true},
+                    {"Inv Mass with Neuitrinos 100 bins", "IMass", "TauJetInvMassWithNeutrino", 100, 0, 200, "GeV"},
+                    {"Inv Mass with Neuitrinos 50 bins", "IMass", "TauJetInvMassWithNeutrino", 50, 0, 200, "GeV"},
+                    {"Inv Mass with Neuitrinos 20 bins", "IMass", "TauJetInvMassWithNeutrino", 20, 0, 200, "GeV"},
+                    {"Number of Jets", "Num", "Jet_Num", 20, 0, 20, "", true},
                     {"Number of B Jets", "Num", "Jet_BNum", 10, 0, 10, "", true},
                     {"Angle diff between met and jets", "$\\Delta \\phi$", "AngleBetweenMET", 200, 0, 4, "rad"},
-                        {"Delta R between obs taus", "\\Delta R", "TauJetDeltaR", 500, 0, 5, ""}
+                        // {"Delta R between obs taus", "\\Delta R", "TauJetDeltaR", 500, 0, 5, ""}
                 }
             }
     },
     {"Gen+RecoLevel",
-            {data_sets["pptttata_exh"], *TruthAnalysis, {{size_2, {"DeltaRIndicies"}}}, "Ztata      Gen+Reco",
+            {data_sets["pptttata_exh"], *TruthAnalysis, {{size_2, {"TruthMatchIndicies"}}}, "Ztata      Gen+Reco",
                 {
-                    {"Number of Jets", "Number", "Jet_Num", 10, 0, 10, "", true},
+                    {"Number of Jets", "Number", "Jet_Num", 20, 0, 20, "", true},
                     {"MissingET", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
                     {"Number Of BJets", "Number", "Jet_BNum", 10, 0, 10, "", true},
                     {"TauJetPT", "PT", "Jet_TauTagPT", 200, 0, 200, "GeV"},
@@ -168,20 +182,55 @@ namespace DataBase{
                 }
             }
     },
+    {"SemiLeptnoicAnalysis",
+            {data_sets["pptttata_exh"], *SemiLeptonicAnalysis, {}, "SemiLeptonic",
+              {
+                // {"GenMuonCut Number", "Number", "MuonCut_Num", 10, 0, 10, "", true},
+                // {"GenElectronCut Number", "Number", "Electron_Num", 10, 0, 10, "", true},
+                {"Lep_Num", "Number", "Lep_Num", 5, 0, 5, "", true},
+                {"Jet_TauTag Number", "Number", "Jet_TauNum", 10, 0, 10, "", true},
+                {"Lep PT", "PT", "Lep_PT", 200, 0, 200, "GeV"},
+                {"Jet_TauTagPT", "PT", "Jet_TauTagPT", 200, 0, 200, "GeV"},
+                {"Jet_TauTagEta", "\\eta", "Jet_TauTagEta", 200, -5, 5, ""},
+                {"Lep_Eta", "\\eta", "Lep_Eta", 200, -5, 5, ""},
+                {"delta_phi_between_lep and tau", "\\Delta \\phi", "SemiLepDeltaPhi", 100, 0, 4, "rad", true},
+                {"SemiLep invmass without neutrino pt", "IMass", "SemiLepInvMass",  20, 0, 200, "GeV"},
+                {"Lep_IsolationVar", "IsolationVarr", "Lep_IsolationVar", 10, 0, 1, ""},
+                {"TransverseMass", "M_T", "TransverseMass", 50, 0, 200, "GeV"},
+                {"Semi Lep Inv Mass with Neutrino PT", "IMass", "SemiLepInvMassWithNeutrino", 10, 0, 200, "GeV"},
+                {"Angle Difference between MET", "Angle", "AngleBetweenMET", 100, 0, 0.0001, "rad"},
+                {"Angle Difference between MET ZOOMOUT", "Angle", "AngleBetweenMET", 1000, 0, 2, "rad"},
+                {"Neutrino pt 1", "Neutrino Pt", "NeutrinoPT1", 800, -200, 200, "GeV"},
+                {"Neutrino pt 2", "Neutrino Pt", "NeutrinoPT2", 800, -200, 200, "GeV"},
+                {"Sum PT plot for lepton", "PT", "Lep_SumPT", 200, 0, 100, "GeV"},
+                {"MET", "\\not{E_T}", "MissingET.MET", 200, 0, 200, "GeV"},
+                {"Jet_BNum", "Number", "Jet_BNum", 10, 0, 10, "", true}, 
+                {"Jet_Num", "Number", "Jet_Num", 20 , 0, 20, "", true},
+                {"MET", "MET", "MissingET.MET", 100, 0, 200, "GeV"},
+                {"Omega", "\\Omega", "Omega", 100, -2, 2, ""},
+
+              }
+            }
+    },
     {"SelectionCut",
-            {data_sets["pptttata_exh"], *SelectionCutAnalysis, {{size_2, {"DeltaRIndicies"}}, {size_2, {"Particle_TauIndicies"}}}, "Selcut",
+            {data_sets["pptttata_exh"], *SelectionCutAnalysis, {{size_2, {"TruthMatchIndicies"}}, {size_2, {"Particle_TauIndicies"}}}, "Selcut",
                 {
                     {"MET of Tau", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
-                    {"Delta R of Tau and Selected Tau Jets", "Delta R", "DeltaRJetTauSel", 400, 0, 1, ""},
+                    {"Transverse Mass", "M_T", "Jet_TransverseMass", 200, 0, 200, "GeV"},
+                    // {"Transverse Mass", "M_T", ""}
+                    // {"Delta R of Tau and Selected Tau Jets", "Delta R", "DeltaRJetTauSel", 400, 0, 1, ""},
                     // {"Delta Phi of Tau Leptons", "\\Delta\\Phi", "DeltaPhiGenTau", 100, -0.5, 4, "rad"},
+                    {"Delta R of Truth Matching", "\\Delta R", "TruthMatchedDeltaR", 200, 0, 2, ""},
+                    // {"Delta R of Non Truth Matching", "\\Delta R", "NTruthMatchedDeltaR", 200, 0, 2, ""},
+                    {"Number of Truth Matched Taus", "Number", "Jet_DTauNum", 10, 0, 10, "", true},
                     {"Delta Phi of Truth Matched Jets", "\\Delta\\Phi", "TruthMatchDeltaPhi", 100, -0.5, 4, "rad"},
                     // {"Invariant Mass of the truth Taus system0-50", "IMass", "TruthTauInvMass", 100, 0, 50, "GeV"},
                     // {"Invariant Mass of the truth Taus system0-200", "IMass", "TruthTauInvMass", 100, 0, 200, "GeV"},
                     {"PT of Tau Leptons", "Tau PT", "Tau_PT", 800, 0, 400, "GeV"},
                     {"Neutrino pt 1", "Neutrino Pt", "NeutrinoPT1", 800, -200, 200, "GeV"},
                     {"Neutrino pt 2", "Neutrino Pt", "NeutrinoPT2", 800, -200, 200, "GeV"},
-                    {"Inv Mass without Neutrinos", "IMass", "TauJetInvMass", 50, 0, 200, "GeV   "},
-                    {"Inv Mass with Neutrinos", "IMass", "TauJetInvMassWithNeutrino", 50, 0, 200, "GeV"},
+                    {"Inv Mass without Neutrinos", "IMass", "TauJetInvMass", 20, 0, 200, "GeV"},
+                    {"Inv Mass with Neutrinos", "IMass", "TauJetInvMassWithNeutrino", 20, 0, 200, "GeV"},
                     {"Number of B tag jets", "Number", "Jet_BNum", 10, 0, 10, "", true},
                     {"Angle Difference between MET", "Angle", "AngleBetweenMET", 100, 0, 0.0001, "rad"},
                     {"Angle Difference between MET ZOOMOUT", "Angle", "AngleBetweenMET", 1000, 0, 2, "rad"},
@@ -195,26 +244,26 @@ namespace DataBase{
                     {"Alpha of Truth Matched Tau", "\\alpha", "Jet_DTauTagAlpha", 100, -4, 4, "rad"},
                     {"DeltaR between Gen Taus", "\\Delta R", "GenTauDeltaR", 500, 0, 5, ""},
                     {"Delta R between obs taus", "\\Delta R", "TauJetDeltaR", 500, 0, 5, ""},
-                    {"PT of truthNeutrino1", "PT", "TruthNeutrinoPT2", 300, -100, 200, "GeV"},
-                    {"Pt of truthNeutrino2", "Pt", "TruthNeutrinoPT1", 300, -100, 200, "GeV"},
-                    {"PT of tau jet with truth neutrino included", "PT", "Jet_DTauTagTruthNeutrinoPT", 200, 0, 200, "GeV"},
-                    {"angle difference between the truth met and the jets", "Angle Difference", "AngleBetweenTruthMET", 1000, 0, 1, "rad"},
-                    {"Invariant Mass of Taus with Truth Neutrino PT included", "IMass", "TauJetInvMassWithTruthNeutrino", 100, 0, 200, "GeV/c^2"},
+                    // {"PT of truthNeutrino1", "PT", "TruthNeutrinoPT2", 300, -100, 200, "GeV"},
+                    // {"Pt of truthNeutrino2", "Pt", "TruthNeutrinoPT1", 300, -100, 200, "GeV"},
+                    // {"PT of tau jet with truth neutrino included", "PT", "Jet_DTauTagTruthNeutrinoPT", 200, 0, 200, "GeV"},
+                    // {"angle difference between the truth met and the jets", "Angle Difference", "AngleBetweenTruthMET", 1000, 0, 1, "rad"},
+                    // {"Invariant Mass of Taus with Truth Neutrino PT included", "IMass", "TauJetInvMassWithTruthNeutrino", 100, 0, 200, "GeV/c^2"},
                     // {"Delta R between tau tag jets", "\\Delta R", ""}
-                    {"Difference between the Truth and Reco MET", "\\not{E_T\\mathrm{truth}} - \\not{E_T\\mathrm{reco}}", "DifferenceBetweenTruthRecoMET", 100, -100, 100, "GeV"},
-                    {"NormalisedDifferenceBetweenTruthRecoMET", "\\frac{\\not{E_T\\mathrm{truth}} - \\not{E_T\\mathrm{reco}}}{\\not{E_{T\\mathrm{truth}}}}", "NormalisedDifferenceBetweenTruthRecoMET", 100, -3, 3, ""},
-                    {"Jet_NDTauTagPT", "PT", "Jet_NDTauTagPT", 200, 0, 200, "GeV"},
-                    {"Jet_NDTauTagphi", "\\phi", "Jet_NDTauTagPhi", 200, 0, 200, "rad"},
-                    {"Jet_NDTauTagEta", "\\eta", "Jet_NDTauTagEta", 200, 0, 200, ""},
-                    {"Jet_NDTauTagMass", "IMASS", "Jet_NDTauTagMass", 200, 0, 200, "GeV"},
-                    {"Jet_DTauTagMass", "IMASS", "Jet_DTauTagMass", 200, 0, 200, "GeV"},
+                    // {"Difference between the Truth and Reco MET", "\\not{E_T\\mathrm{truth}} - \\not{E_T\\mathrm{reco}}", "DifferenceBetweenTruthRecoMET", 100, -100, 100, "GeV"},
+                    // {"NormalisedDifferenceBetweenTruthRecoMET", "\\frac{\\not{E_T\\mathrm{truth}} - \\not{E_T\\mathrm{reco}}}{\\not{E_{T\\mathrm{truth}}}}", "NormalisedDifferenceBetweenTruthRecoMET", 100, -3, 3, ""},
+                    // {"Jet_NDTauTagPT", "PT", "Jet_NDTauTagPT", 200, 0, 200, "GeV"},
+                    // {"Jet_NDTauTagphi", "\\phi", "Jet_NDTauTagPhi", 200, 0, 200, "rad"},
+                    // {"Jet_NDTauTagEta", "\\eta", "Jet_NDTauTagEta", 200, 0, 200, ""},
+                    // {"Jet_NDTauTagMass", "IMASS", "Jet_NDTauTagMass", 200, 0, 200, "GeV"},
+                    // {"Jet_DTauTagMass", "IMASS", "Jet_DTauTagMass", 200, 0, 200, "GeV"},
                     {"ElectronRecoSumPt", "PT", "Electron.SumPt", 200, 0, 200, "GeV"},
                     {"ElectronRecoSumPtCharged", "PT", "Electron.SumPtCharged", 200, 0, 200, "GeV"},
                     {"ElectronRecoSumPtNeutral", "PT", "Electron.SumPtCharged", 200, 0, 200, "GeV"},
                     {"MuonRecoSumPt", "PT", "Muon.SumPt", 200, 0, 200, "GeV"},
                     {"MuonRecoSumPtCharged", "PT", "Muon.SumPtCharged", 200, 0, 200, "GeV"},
                     {"MuonRecoSumPtNeutral", "PT", "Muon.SumPtNeutral", 200, 0, 200, "GeV"},
-                    {"Number of Jets", "Number", "Jet_Num", 10, 0, 10, "", true},
+                    {"Number of Jets", "Number", "Jet_Num", 20, 0, 20, "", true},
 
                     // {"Delta Phi of Tau Leptons", "|Angle Difference|", "DeltaPhiGenTau", 1000, -0.5, 3.5, "rad"},
                     // {"Total Tau System PT", "PT", "TotalTauPT", 1000,-1000, 1000, "GeV"}
@@ -226,7 +275,7 @@ namespace DataBase{
             {data_sets["pptttata_exh"], *SelectionCutAnalysis, {}, "SelcutTRUTHJET",
                 {
                     {"MET of Tau", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
-                    {"Delta R of Tau and Selected Tau Jets", "Delta R", "DeltaRJetTauSel", 400, 0, 1, ""},
+                    // {"Delta R of Tau and Selected Tau Jets", "Delta R", "DeltaRJetTauSel", 400, 0, 1, ""},
                     // {"Delta Phi of Tau Leptons", "\\Delta\\Phi", "DeltaPhiGenTau", 100, -0.5, 4, "rad"},
                     {"Delta Phi of Truth Matched Jets", "\\Delta\\Phi", "TruthMatchDeltaPhi", 100, -0.5, 4, "rad"},
                     // {"Invariant Mass of the truth Taus system0-50", "IMass", "TruthTauInvMass", 100, 0, 50, "GeV"},
@@ -256,7 +305,7 @@ namespace DataBase{
             {data_sets["zonly_had_decay"], *SelectionCutAnalysis,  {{size_2, {"DeltaRIndicies"}}}, "SelCutZOnly",
                 {
                     {"MET of Tau", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
-                    {"Delta R of Tau and Selected Tau Jets", "Delta R", "DeltaRJetTauSel", 400, 0, 1, ""},
+                    // {"Delta R of Tau and Selected Tau Jets", "Delta R", "DeltaRJetTauSel", 400, 0, 1, ""},
                     // {"Delta Phi of Tau Leptons", "\\Delta\\Phi", "DeltaPhiGenTau", 100, -0.5, 4, "rad"},
                     {"Delta Phi of Truth Matched Jets", "\\Delta\\Phi", "TruthMatchDeltaPhi", 100, -0.5, 4, "rad"},
                     // {"Invariant Mass of the truth Taus system0-50", "IMass", "TruthTauInvMass", 100, 0, 50, "GeV"},
@@ -296,7 +345,7 @@ namespace DataBase{
                     {"eeDeltaPhi", "Phi", "eeDeltaPhi", 100, -0.5, 4, "rad"},
                     {"Total Jet PT", "PT", "Jet_TotPT", 200, 0, 200, "GeV"},
                     {"Total ee PT", "PT", "ee_TotPT", 200, 0, 200, "GeV"},
-                    {"Number of Jets", "Number", "Jet_Num", 10, 0, 10, "", true},
+                    {"Number of Jets", "Number", "Jet_Num", 20, 0, 20, "", true},
                     {"Number of b Jets", "Number", "Jet_BNum", 10, 0, 10, "", true},
                     {"Tot PT Difference (jet - ee)", "PT", "PtDiff", 200, -1700, 700, "GeV"}
                 }
