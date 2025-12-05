@@ -19,6 +19,7 @@ namespace DataStructs
     string save_string;
     
     FrameAndData(string mode, vector<string> files) : frame{mode, files}, node{frame}, save_string{} {}
+    FrameAndData(ROOT::RDataFrame&& rdf) : frame{rdf}, node{frame} {}
     ROOT::RDF::RResultPtr<TH1D> Histo1D(string hist_id, string hist_name, int nbins, double lbound, double ubound, string plotting_column)
     {
       return node.Histo1D({hist_id.c_str(), hist_name.c_str(), nbins, lbound, ubound}, plotting_column);

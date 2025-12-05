@@ -103,6 +103,10 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   auto get_transverse_mass = [](RV<Float_t> lep_pt, RV<Float_t> met, RV<Float_t> lep_phi, RV<Float_t> met_phi){
     return sqrt(2 * lep_pt[0] * met[0] * (1- cos(LFuncs::get_delta_phi_special(lep_phi[0], met_phi[0]) ) ));
   };
+
+  vector<string> columns{"MissingET", "Jet_DTauTagPhi", "Jet_DTauTagPT", "Tau_PT", "Tau_Phi", "Tau_Eta"};
+  BackEnd::cache_columns(fd, columns);
+
   fd.Define("NeutrinoPT2", LFuncs::get_col_neutrinopt2, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi"});
   fd.Define("NeutrinoPT1", LFuncs::get_col_neutrinopt1, {"MissingET.MET", "Jet_DTauTagPhi", "MissingET.Phi", "NeutrinoPT2"});
   fd.Define("Jet_DTauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_DTauTagPT", "NeutrinoPT1", "NeutrinoPT2"});
@@ -138,7 +142,7 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   // fd.Filter(SC::size_0, {"Electron.PT", "Muon.PT"}, "NoLep");
   // fd.Filter(jetbnum, {"Jet_BNum"}, "2BJets");
   fd.Filter(SC::opp_sign, {"Jet_DTauTagCharge"}, "OSCut");
-  fd.Filter(SC::jet_number_cut, {"Jet_Num"}, "g7jet"); 
+  // fd.Filter(SC::jet_number_cut, {"Jet_Num"}, "g7jet"); 
   fd.Filter(SC::met_angle_diff_fine, {"AngleBetweenMET"}, "METbetweenJets2E-6");
   
   // fd.Filter(SC::norm_truth_reco_diff_cut, {"NormalisedDifferenceBetweenTruthRecoMET"}, "METNormDiff0p3");
@@ -153,7 +157,7 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   // fd.Filter(SC::delta_phi_1, {"TruthMatchDeltaPhi"}, "DeltaPhi1");
   // fd.Filter(SC::delta_phi_1p2, {"TruthMatchDeltaPhi"}, "DeltaPhi1p2");
   // fd.Filter(SC::delta_phi_1p6, {"TruthMatchDeltaPhi"} , "DeltaPhi1p6");
-  // fd.Filter(SC::delta_phi_2, {"TruthMatchDeltaPhi"}, "DeltaPhi2");
+  fd.Filter(SC::delta_phi_2, {"TruthMatchDeltaPhi"}, "DeltaPhi2");
   // fd.frame.Foreach([](ROOT::VecOps::RVec<Float_t> gen_tau_pt, ROOT::VecOps::RVec<Float_t> reco_tau_pt){cout<<gen_tau_pt<<" "<<reco_tau_pt<<"\n";}, {"Tau_PT","Jet_DTauTagNeutrinoPT"});
   // vector<vector<Integral<Float_t>>> inout = SCAlgo::get_integral<Float_t>(fd, "TruthMatchDeltaPhi", "TauJetInvMassWithNeutrino", SC::y_lt_x_inout, {0, 3.2}, 10);
   // BackEnd::serialise_integral(inout[0], "DeltaPhiIn" + fd.save_string);
@@ -188,7 +192,7 @@ void DataBase::SemiLeptonicAnalysis(DataStructs::FrameAndData& fd){
     RV<Float_t> res{}; res.push_back(p1[0]); res.push_back(p2[0]);
     return res;
   };
-  auto lep_pt_cut = [](RV<Float_t> pt){return pt[0] > 25;};
+  auto lep_pt_cut = [](RV<Float_t> pt){return pt[0] > 15;};
   auto bjet_cut = [](RV<Float_t> pt){
     return pt.size() >= 1;
   };
@@ -215,6 +219,10 @@ void DataBase::SemiLeptonicAnalysis(DataStructs::FrameAndData& fd){
   auto omega_cut = [](Float_t omega){
     return -0.2 < omega && omega < 1.2;
   };
+
+  // vector<string> cols{"Jet_TauTagCharge", "Lep_Charge", "Jet_TauTagPT", "Jet_TauTagPhi", "Jet_TauTagEta", "Lep_PT", "Lep_Phi", "Lep_Eta", "MissingET.MET",
+  // "MissingET.Phi"};
+  // FrameAndData fd{BackEnd::cache_columns(fd_raw, cols)};
   // fd.Filter(size_1, {"Jet_DTauTagCharge"}, "1TMTauJet");
   fd.Filter(SC::semileptonic_cut, {"Jet_TauTagCharge", "Lep_Charge"}, "SemiLeptonicCut");
   // fd.Filter(isolation_cut, {"Lep_IsolationVar"}, "LepIsolationCut0p1");
@@ -241,13 +249,13 @@ void DataBase::SemiLeptonicAnalysis(DataStructs::FrameAndData& fd){
   fd.Filter(omega_cut, {"Omega"}, "OmegabtwnM0p2a1p2");
   // fd.Filter(SC::met_angle_diff_fine, {"AngleBetweenMET"}, "METbetweenJets2E-6");
   // fd.Filter(SC::met_angle_diff_less_fine, {"AngleBetweenMET"}, "MetBetweenJets3E-6");
-  // fd.Filter(SC::met_g_30, {"MissingET.MET"}, "METG30");
-  fd.Filter(lep_pt_cut, {"Lep_PT"}, "LepPTG25");
+  fd.Filter(SC::met_g_30, {"MissingET.MET"}, "METG30");
+  fd.Filter(lep_pt_cut, {"Lep_PT"}, "LepPTG15");
   // fd.Filter(SC::delta_phi_1, {"SemiLepDeltaPhi"}, "DeltaPhiL1");
   fd.Filter(SC::delta_phi_1p6, {"SemiLepDeltaPhi"}, "DeltaPhiL1p6");
   // fd.Filter(SC::delta_phi_2, {"SemiLepDeltaPhi"}, "DeltaPhiL2");
   // fd.Filter(SC::jet_number_cut, {"Jet_Num"}, "JetNumG5");
-  fd.Filter(bjet_cut, {"Jet_BTagPT"}, "GE1BJet");
+  // fd.Filter(bjet_cut, {"Jet_BTagPT"}, "GE1BJet");
   // fd.Filter()
 }
 
@@ -260,9 +268,9 @@ void DataBase::MomentumTest(DataStructs::FrameAndData& fd){
   fd.Define("GenTauInvMass", LFuncs::inv_mass_ml, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
 }
 
-void analysis_procedure(string analysis_mode, string mode, string weighting){
+void analysis_procedure(string analysis_mode, string mode, string weighting, string cluster_mode){
   
-  vector<string> files = BackEnd::load_files(analysis_mode);
+  vector<string> files = BackEnd::load_files(analysis_mode, cluster_mode);
   cout << "Analysis Mode: " << analysis_mode << "\nNumber of files Loaded: " <<files.size()<<"\n";
   string outputFileName = DataBase::database[analysis_mode].fname;
   // HistInfo: {name of hist, x axis title, Column name, nbins, lbound, ubound, units, offset by .5}
@@ -278,7 +286,7 @@ void analysis_procedure(string analysis_mode, string mode, string weighting){
   DataBase::database[analysis_mode].a_func(fd);
   cout<<"Plotting\n";
   BackEnd::plot(outputFileName + fd.save_string, fd, DataBase::database[analysis_mode].hists, weighting);
-  BackEnd::save_hist_info(outputFileName, DataBase::database[analysis_mode].hists);
+  BackEnd::save_hist_info(outputFileName, DataBase::database[analysis_mode].hists, cluster_mode);
 }
 
 
@@ -287,10 +295,11 @@ void GeneralAnalyser()
 {
   // Loading Info
   string mode{"Delphes"};
-  vector<string> analysis_modes{"SemiLeptnoicAnalysis"};
+  string cluster_mode{"not"};
+  vector<string> analysis_modes{"SelectionCut"};
   string weighting{"Raw"};
   for(auto analysis_mode : analysis_modes){
     cout<<"\n"<<analysis_mode<<" Analysis\n\n";
-    analysis_procedure(analysis_mode, mode, weighting);
+    analysis_procedure(analysis_mode, mode, weighting, cluster_mode);
   }
 }

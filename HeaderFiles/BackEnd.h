@@ -5,6 +5,7 @@
 #include<fstream>
 #include<iostream>
 #include<memory>
+#include<chrono>
 #include <future> // for parallel execution
 
 
@@ -20,7 +21,7 @@ using std::cout;
 
 namespace BackEnd
 {
-  vector<string> load_files(string& analysis_mode)
+  vector<string> load_files(string& analysis_mode, string& cluster_mode)
   {
     vector<string> files{};
     string file{};
@@ -37,7 +38,7 @@ namespace BackEnd
     {
       size_t delimiter{file.find(",")};
       cout<<"/gluster/data/atlas/" + file.substr(0, delimiter) + "/DATA/" + file.substr(delimiter + 1) + ".root\n";
-      files.push_back("/gluster/data/atlas/" + file.substr(0, delimiter) + "/DATA/" + file.substr(delimiter + 1) + ".root");
+      files.push_back(DataBase::pre_path.at(cluster_mode) + "/gluster/data/atlas/" + file.substr(0, delimiter) + "/DATA/" + file.substr(delimiter + 1) + ".root");
     }
     return files;
   }
@@ -69,10 +70,8 @@ namespace BackEnd
   // }
   // gptr  code 
 
-void save_histograms(
-    const std::string& outputFileName,
-    std::vector<ROOT::RDF::RResultPtr<TH1D>>& histograms,
-    std::vector<HistInfo>& hist_info)
+void save_histograms(std::string outputFileName, std::vector<ROOT::RDF::RResultPtr<TH1D>>& histograms,
+    const std::vector<HistInfo>& hist_info)
 {
     // Enable multi-threading (all available cores)
 
@@ -82,31 +81,40 @@ void save_histograms(
     std::string file_path = (dir / (outputFileName + ".root")).string();
     TFile out_file(file_path.c_str(), "RECREATE");
 
-    // Materialize all histograms (compute them in parallel)
+    auto start = std::chrono::high_resolution_clock::now();
+    cout << "Start: \n";
+    // Materialize all histograms (compute them in parallel) 
     for (auto& hptr : histograms) {
-        hptr.GetValue(); // triggers computation
+        hptr.GetValue();
     }
 
-    // Write all histograms to file
+    auto mid = std::chrono::high_resolution_clock::now();
+    cout << "Mid: " << std::chrono::duration<double>(mid-start).count() << "\n";
+    out_file.cd(); // Make sure we're writing to the file
+
+    // Configure and write
     for (size_t i = 0; i < histograms.size(); ++i) {
-        TH1D* h = histograms[i].GetPtr(); // get pointer
-        h->SetName(hist_info[i].name.c_str()); // optional rename
+        TH1D* h = histograms[i].GetPtr();
+        h->SetName(hist_info[i].name.c_str());
         h->GetXaxis()->SetTitle((hist_info[i].x_axis + " (" + hist_info[i].units + ")").c_str());
         h->GetYaxis()->SetTitle("Events");
-        // h->Scale(6.24 * pow(10, -5)); // Scale to rhys' ATLAS lum 36.6fb-1 epsilon 0.028, cross section = 29fb
-        // h->Scale(2.2 * pow(10, -3)); // Scale to my cross section and predicted ATLAS lum 36.6fb-1 and epsilon 0.95, cross section 29fb.
-        h->Write(); // write to ROOT file
+        h->Write(hist_info[i].name.c_str()); // Specify name in Write()
     }
+    auto end = std::chrono::high_resolution_clock::now();
 
+    cout << "end: " << std::chrono::duration<double>(end-mid).count() << "\n";
     out_file.Close();
-
+    std::cout << "Computation: " 
+          << std::chrono::duration<double>(mid-start).count() << "s\n";
+    std::cout << "Writing: " 
+          << std::chrono::duration<double>(end-mid).count() << "s\n";
     std::cout << "Saved " << histograms.size() << " histograms to " << file_path << std::endl;
 }
 
 
-  void save_hist_info(string outputFileName, const vector<HistInfo>& histograms){
+  void save_hist_info(string outputFileName, const vector<HistInfo>& histograms, string& cluster_mode){
     ROOT::EnableImplicitMT();
-    std::stringstream complete_file_name{}; complete_file_name << "/gluster/data/atlas/jdombrowski/HistogramInfo/" << outputFileName << ".txt";
+    std::stringstream complete_file_name{}; complete_file_name << DataBase::pre_path.at(cluster_mode) << "/gluster/data/atlas/jdombrowski/HistogramInfo/" << outputFileName << ".txt";
     std::ofstream histograms_file{complete_file_name.str()};
     std::stringstream save_stringstream{};
     save_stringstream << "{";
@@ -120,20 +128,36 @@ void save_histograms(
     histograms_file.close();
   }
 
-  void plot(string outputFileName, FrameAndData& fd, vector<HistInfo>& his, string weighting){
-    vector<ROOT::RDF::RResultPtr<TH1D>> histograms(his.size());
-    for(int i{0}; i < his.size(); i++){
-      cout<<"Histo1D\n";
-      if(his[i].mode == 0){
-        histograms[i] = fd.Histo1D("Hist", his[i].name, his[i].nbins, his[i].lbound - 0.5 * his[i].take_point_five, his[i].ubound - 0.5 * his[i].take_point_five, his[i].columns[0]);
-      }
+  void plot(const string& outputFileName, FrameAndData& fd, 
+          const vector<HistInfo>& his, const string& weighting) {
+    if (his.empty()) return;  // Early exit
+    vector<ROOT::RDF::RResultPtr<TH1D>> histograms;
+    histograms.reserve(his.size());  // Pre-allocate
+    // Book all histograms in one pass
+    for (const auto& h : his) {
+        if (h.mode == 0) {
+            double lower = h.lbound - 0.5 * h.take_point_five;
+            double upper = h.ubound - 0.5 * h.take_point_five;
+            
+            histograms.push_back(
+                fd.Histo1D(h.name.c_str(), h.name.c_str(), h.nbins, lower, upper, h.columns[0].c_str())
+            );
+        }
     }
-    for(int i{0}; i < his.size(); i++){
-      histograms[i]->Scale(DataBase::weighting.at(weighting));
+    // Trigger computation in parallel (single event loop)
+    cout << "Computing " << histograms.size() << " histograms..." << endl;
+    for (auto& hptr : histograms) {
+        hptr.GetValue();  // Materialize all in parallel
     }
+    // Apply scaling
+    double scale_factor = DataBase::weighting.at(weighting);
+    for (auto& hptr : histograms) {
+        hptr->Scale(scale_factor);
+    }
+    
+    // Save to file
     save_histograms(weighting + "_" + outputFileName, histograms, his);
-
-  }
+}
 
   void pre_process_columns(FrameAndData& fd){
     // Constants To Pass
@@ -396,6 +420,8 @@ void save_histograms(
     fd.Define("Electron_Num", LFuncs::get_size<Float_t>, {"Electron.PT"});
     // Muon
     fd.Define("Muon_Num", LFuncs::get_size<Float_t>, {"Muon.PT"});
+    // forces root to compute all the defines here and now.
+    auto dummy = fd.node.Count();
   }
   template<typename T> void serialise_integral(vector<DataStructs::Integral<T>>& integral, string fname){
     std::stringstream ss{}; ss<<"Value,Integral\n";
@@ -406,6 +432,14 @@ void save_histograms(
     std::ofstream outfile{"/gluster/data/atlas/jdombrowski/SelectionCutIntegrals/" + fname + ".txt"};
     outfile<<ss.str();
     outfile.close();
+  }
+  void cache_columns(FrameAndData& fd, vector<string> cached_columns){
+    // auto cached_columns = {"var1", "var2", "var3", /* all columns you need */};
+
+    cout << "Caching processed data..." << endl;
+    fd.node.Cache(cached_columns);
+
+    // Now work with the cached file (much faster!)
   }
 };
 
