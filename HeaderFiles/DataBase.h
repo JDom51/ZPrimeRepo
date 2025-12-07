@@ -7,6 +7,7 @@ using DataStructs::FrameAndData;
 using DataStructs::HistInfo;
 using SC::size_2;
 using SC::size_0;
+using SC::size_0_ui;
 
 namespace DataBase{
   void NoCut(FrameAndData& fd);
@@ -17,7 +18,8 @@ namespace DataBase{
   void EAnalysis(FrameAndData& fd);
   void MomentumTest(FrameAndData& fd);
   void SemiLeptonicAnalysis(DataStructs::FrameAndData& fd);
-  
+  void ppzllAnalysis(DataStructs::FrameAndData& fd);
+  void ppztataAnalysis(DataStructs::FrameAndData& fd);
   // map<string, DataStructs::GenSelectionCut> sel_cuts{
   //   {"DeltaPhi2", SC::delta_phi_2}
   // };
@@ -54,10 +56,56 @@ namespace DataBase{
                            "jdombrowski,hadronic_top_decay_run_run_05","jdombrowski,hadronic_top_decay_run_run_06",
                            "jdombrowski,hadronic_top_decay_run_run_07","jdombrowski,hadronic_top_decay_run_run_08",
                            "jdombrowski,hadronic_top_decay_run_run_09","jdombrowski,hadronic_top_decay_run_run_10"}},
-    {"ppzee" , {"jdombrowski,ppzttee_run_01" ,"jdombrowski,ppzttee_run_02","jdombrowski,ppzttee_run_03",
+    {"ppzttee" , {"jdombrowski,ppzttee_run_01" ,"jdombrowski,ppzttee_run_02","jdombrowski,ppzttee_run_03",
             "jdombrowski,ppzttee_run_04","jdombrowski,ppzttee_run_05","jdombrowski,ppzttee_run_06",
             "jdombrowski,ppzttee_run_07","jdombrowski,ppzttee_run_08","jdombrowski,ppzttee_run_09",
-            "jdombrowski,ppzttee_run_10"}}
+            "jdombrowski,ppzttee_run_10"}},
+    {"ppzee", {"jdombrowski,ppzee_run_01"}},
+    {"ppzmumu",{"jdombrowski,ppzmumu_run_01"}},
+    {"ppztata",{"jdombrowski,ppztata_run_01"}},
+    {"ppzLL", {"jdombrowski,ppzee_run_01", "jdombrowski,ppzmumu_run_01","jdombrowski,ppztata_run_01"}},
+    {"ppttee_exh", {"jdombrowski,ppttee_exh"}},
+    {"ppttmumu_exh", {"jdombrowski,ppttmumu_exh"}},
+  };
+  // pre defined histograms
+  map<string, vector<DataStructs::HistInfo>> pdhists{
+    {"ppzLL", {
+        {"Number of Jets", "Number", "Jet_Num", 20, 0, 20, "", true},
+        {"Number Of BJets", "Number", "Jet_BNum", 10, 0, 10, "", true},
+        {"MissingET", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
+        {"TauJetPT", "PT", "Jet_TauTagPT", 50, 0, 200, "GeV"},
+        {"JetPT", "PT", "Jet.PT", 50, 0, 200, "GeV"},
+        {"TauPT", "PT", "Tau_PT", 50, 0, 200, "GeV"},
+        {"Number of Gen Taus in event", "Number", "Tau_Num", 10, 0, 10, "", true},
+        {"Electron PT", "PT", "Electron.PT", 50, 0, 200, "GeV"},
+        {"Muon PT", "PT", "Muon.PT", 50, 0, 200, "GeV"},
+        {"Electron Number", "Num", "Electron_size", 10, 0, 10, "", true},
+        {"Muon Number", "Num", "Muon_size", 10, 0, 10, "", true},
+        {"Gen Electron Number", "Num", "GenElectron_Num", 10, 0, 10, "", true},
+        {"Gen Muon Number", "Num",  "GenMuon_Num", 10, 0, 10, "", true},
+        {"GenElectron_Status", "Status", "GenElectron_Status", 100, 0, 100, "", true},
+        {"GenMuon_Status", "Status", "GenMuon_Status", 100, 0, 100, "", true},
+        {"GenElectron_IsPU", "PU", "GenElectron_IsPU", 3, 0, 3, "", true},
+        {"GenMuon_IsPU", "PU", "GenMuon_IsPU", 3, 0, 3, "", true},
+        {"GenMuonCut_Num", "Number", "GenMuonCut_Num", 10, 0, 10, "", true},
+        {"GenElectronCut_Num", "Number", "GenElectronCut_Num", 10, 0, 10 , "", true},
+        {"GenMuon_Eta", "\\Eta", "GenMuon_Eta", 100, -5, 5, ""},
+        {"GenMuonCut_Eta", "\\Eta", "GenMuonCut_Eta", 100, -5, 5, ""},
+        {"GenElectron_Eta", "\\Eta", "GenElectron_Eta", 100, -5, 5, ""},
+        {"GenElectronCut_Eta", "\\Eta", "GenElectronCut_Eta", 100, -5, 5, ""},
+        {"RecoMuonEta", "\\Eta", "Muon.Eta", 100, -5, 5, ""},
+        {"RecoElectronEta", "\\Eta", "Electron.Eta", 100, -5, 5, ""},
+        {"ElectronRecoSumPt", "PT", "Electron.SumPt", 50, 0, 200, "GeV"},
+        {"ElectronRecoSumPtCharged", "PT", "Electron.SumPtCharged", 50, 0, 200, "GeV"},
+        {"ElectronRecoSumPtNeutral", "PT", "Electron.SumPtCharged", 50, 0, 200, "GeV"},
+        {"MuonRecoSumPt", "PT", "Muon.SumPt", 50, 0, 200, "GeV"},
+        {"MuonRecoSumPtCharged", "PT", "Muon.SumPtCharged", 50, 0, 200, "GeV"},
+        {"MuonRecoSumPtNeutral", "PT", "Muon.SumPtNeutral", 50, 0, 200, "GeV"},
+        {"GenInvMass", "IMass", "GenInvMass", 40, 0, 200, "GeV"},
+        {"A", "A", "AngleBetweenMET", 100, 0, 0.0002, "rad"},
+        {"\\Delta\\phi between decay products", "\\Delta\\phi", "DeltaPhi", 50, 0, 4, "rad", true},
+      }
+    }
   };
 
 
@@ -78,7 +126,7 @@ namespace DataBase{
                     {"DeltaR between Gen Taus", "\\Delta R", "GenTauDeltaR", 500, 0, 5, ""},
                     {"Delta R between obs taus", "\\Delta R", "TauJetDeltaR", 500, 0, 5, ""},
                     {"Number of Gen Taus in event", "Number", "Tau_Num", 10, 0, 10, "", true},
-                    {"Generator taus number", "Number", "Tau_Num", 10, 0, 10, "", true},
+                    // {"Generator taus number", "Number", "Tau_Num", 10, 0, 10, "", true},
                     {"Electron PT", "PT", "Electron.PT", 200, 0, 200, "GeV"},
                     {"Muon PT", "PT", "Muon.PT", 200, 0, 200, "GeV"},
                     {"Electron Number", "Num", "Electron_size", 10, 0, 10, "", true},
@@ -342,7 +390,7 @@ namespace DataBase{
             }
     },
     {"EE",
-            {data_sets["ppzee"], *EAnalysis, {}, "Zee, n_e=2",
+            {data_sets["ppzttee"], *EAnalysis, {}, "Zee, n_e=2",
                 {
                     {"Inv Mass of ee system", "IMass", "eeInvMass", 200, 0, 200, "GeV"},
                     {"MET", "MET", "MissingET.MET", 200, 0, 200, "GeV"},
@@ -375,7 +423,14 @@ namespace DataBase{
                     {"Inv Mass of Tau", "IMass", "GenTauInvMass", 200, 0, 200, "GeV"}
                 }
             }
-    }
+    },
+    {"ppzee", {data_sets.at("ppzee"), *ppzllAnalysis, {{size_2, {"Particle_ElectronIndicies_PTCUT"}}, {size_0_ui, {"Particle_MuonIndicies_PTCUT"}}}, "ppzee", pdhists.at("ppzLL")}},
+    {"ppzmumu", {data_sets.at("ppzmumu"), *ppzllAnalysis, {{size_2, {"Particle_MuonIndicies_PTCUT"}}, {size_0_ui, {"Particle_ElectronIndicies_PTCUT"}}}, "ppzmumu", pdhists.at("ppzLL")}},
+    {"ppztata", {data_sets.at("ppztata"), *ppztataAnalysis, {{size_2, {"Particle_TauIndicies"}}}, "ppztata", pdhists.at("ppzLL")}},
+    {"ppzttee_exh", {data_sets.at("ppzttee_exh"), *ppzllAnalysis, {{size_2, {"Particle_ElectronIndicies_PTCUT"}}, {size_0_ui, {"Particle_MuonIndicies_PTCUT"}}, "ppzttee_exh", pdhists.at("ppzLL")}}},
+    {"ppzttmumu_exh", {data_sets.at("ppzttmumu_exh"), *ppzllAnalysis, {{size_2, {"Particle_MuonIndicies_PTCUT"}}, {size_0_ui, {"Particle_ElectronIndicies_PTCUT"}}, "ppzttmumu_exh", pdhists.at("ppzLL")}}},
+    {"ppztttata_exh", {data_sets.at("ppztttata_exh"), *ppztataAnalysis, {{size_2, {"Particle_TauIndicies"}}}, "ppztttata_exh", pdhists.at("ppzLL")}}
+
   };
 
 };

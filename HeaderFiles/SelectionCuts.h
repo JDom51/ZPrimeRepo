@@ -14,6 +14,9 @@ namespace SC
   bool size_2(ROOT::VecOps::RVec<unsigned int> indicies){
     return indicies.size() == 2;
   }
+  bool size_0_ui(RV<unsigned int> indicies){
+    return indicies.size() == 0;
+  }
   bool size_0(ROOT::VecOps::RVec<Float_t> e_pt, ROOT::VecOps::RVec<Float_t> mu_pt){
     return e_pt.size() == 0 && mu_pt.size() == 0;
   }

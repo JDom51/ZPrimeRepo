@@ -261,7 +261,18 @@ void DataBase::SemiLeptonicAnalysis(DataStructs::FrameAndData& fd){
 
 void DataBase::EAnalysis(DataStructs::FrameAndData& fd){
   // comparitive analysis to the general analysis to see how the electrons behave for a comparison with rhys and with the taus.
+}
 
+void DataBase::ppzllAnalysis(DataStructs::FrameAndData& fd){
+  fd.Define("GenInvMass", LFuncs::inv_mass_ml, {"GenLep_PT", "GenLep_Eta", "GenLep_Phi"});
+  fd.Define("AngleBetweenMET", LFuncs::met_jet_ang, {"MissingET.Phi", "GenLep_Phi"});
+  fd.Define("DeltaPhi", LFuncs::get_delta_phi, {"GenLep_Phi"});
+}
+
+void DataBase::ppztataAnalysis(DataStructs::FrameAndData& fd){
+  fd.Define("GenInvMass", LFuncs::inv_mass_ml, {"Tau_PT", "Tau_Eta", "Tau_Phi"});
+  fd.Define("AngleBetweenMET", LFuncs::met_jet_ang, {"MissingET.Phi", "Tau_Phi",});
+  fd.Define("DeltaPhi", LFuncs::get_delta_phi, {"Tau_Phi"});
 }
 
 void DataBase::MomentumTest(DataStructs::FrameAndData& fd){
@@ -295,8 +306,8 @@ void GeneralAnalyser()
 {
   // Loading Info
   string mode{"Delphes"};
-  string cluster_mode{"not"};
-  vector<string> analysis_modes{"SelectionCut"};
+  string cluster_mode{"cluster"};
+  vector<string> analysis_modes{"ppzee", "ppzmumu", "ppztata", "ppzttee_exh", "ppzttmumu_exh", "ppztttata_exh"};
   string weighting{"Raw"};
   for(auto analysis_mode : analysis_modes){
     cout<<"\n"<<analysis_mode<<" Analysis\n\n";
