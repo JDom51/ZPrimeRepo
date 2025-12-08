@@ -3,9 +3,11 @@
 #include<vector>
 #include<string>
 #include<cmath>
+#include<map>
 // #include "Math/VectorUtil.h"
 using std::string;
 using std::vector;
+using std::map;
 template<typename T>
 using RV = ROOT::VecOps::RVec<T>;
 
@@ -382,7 +384,18 @@ namespace LFuncs
   Float_t calc_delta_r(RV<Float_t> phi, RV<Float_t> eta){
     return sqrt((phi[0] - phi[1]) * (phi[0] - phi[1]) + (eta[0] - eta[1]) * (eta[0] - eta[1]));
   }
-
+  RV<unsigned int> get_os_tau_indicies(RV<Float_t> tau_pt, RV<int> tau_charge){
+    map<int, unsigned int> chosen{{1, -1}, {-1, -1}};
+    map<int, Float_t> chosen_pt{{1, 0}, {-1, 0}};
+    for(int i{0}; i < tau_pt.size(); i++){
+      if(tau_pt[i] > chosen_pt[tau_charge[i]]){chosen[tau_charge[i]] = i; chosen_pt[tau_charge[i]] = tau_pt[i];}
+    }
+    RV<unsigned int> indicies{};
+    for(auto [key, item] : chosen){
+      if(item != -1){indicies.push_back(item);}
+    }
+    return indicies;
+  } 
   // RV<vector<Float_t>> get_delta_r(RV<Float_t> delta_phi_jet, RV<Float_t> delta_eta_jet, RV<Float_t> delta_phi_tau, RV<Float_t> delta_eta_tau){
   //   RV<vector<Float_t>> delta_r{};
   //   for(int i{0}; i < delta_phi_tau.size(); i++){

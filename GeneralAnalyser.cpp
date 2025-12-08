@@ -62,11 +62,40 @@ void DataBase::Analyse(DataStructs::FrameAndData& fd)
   fd.Define("TauJetInvMassWithNeutrino", LFuncs::inv_mass_ml, {"Jet_TauTagNeutrinoPT", "Jet_TauTagPhi", "Jet_TauTagEta"});
   
   //FILTERS
-  fd.Filter(SC::opp_sign, {"Jet_TauTagCharge"}, "OSCut");
-  fd.Filter(SC::met_angle_diff_fine, {"AngleBetweenMET"}, "METbetweenJets2E-6");
+  fd.Filter(SC::opp_sign, {"Jet_TauTagCharge"}, "OSCut"); // exists
+  fd.Filter(SC::met_angle_diff_fine, {"AngleBetweenMET"}, "METbetweenJets2E-6"); // exists
+  fd.Filter(SC::met_g_30, {"MissingET.MET"}, "MetG30"); // exists
+  fd.Filter(SC::num_jet_4, {"Jet_Num"}, "NumJetG4"); // exists
+  fd.Filter(SC::tau_pt_cut, {"Jet_TauTagPT"}, "JetTauTagG25"); // exists
+  fd.Filter(SC::delta_phi_2, {"TauTagJetDeltaPhi"}, "DeltaPhiL2"); // exists
+  fd.Filter(SC::lep_pt_l_25, {"Lep_PT"}, "LepPTL25"); // exists
   // fd.Filter(SC::delta_phi_1p2, {"TauTagJetDeltaPhi"}, "DeltaPhi1p2");
 
 }
+
+void DataBase::AnalyseOS(DataStructs::FrameAndData& fd)
+{
+  fd.Define("NeutrinoPT2", LFuncs::get_col_neutrinopt2, {"MissingET.MET", "Jet_TauTagOSPhi", "MissingET.Phi"});
+  fd.Define("NeutrinoPT1", LFuncs::get_col_neutrinopt1, {"MissingET.MET", "Jet_TauTagOSPhi", "MissingET.Phi", "NeutrinoPT2"});
+  fd.Define("Jet_TauTagNeutrinoPT", LFuncs::add_col_pt, {"Jet_TauTagOSPT", "NeutrinoPT1", "NeutrinoPT2"});
+  fd.Define("TauTagJetDeltaPhi", LFuncs::get_delta_phi, {"Jet_TauTagOSPhi"});
+  fd.Define("AngleBetweenMET", LFuncs::met_jet_ang, {"MissingET.Phi", "Jet_TauTagOSPhi"});
+  // fd.Define("AngleBetweenMET", wraparound_fix, {"Jet_DTauTagPhi", "Jet_DTauTagPT", "MissingET.Phi", "MissingET.MET"});
+  fd.Define("TauJetInvMass", LFuncs::inv_mass_ml, {"Jet_TauTagOSPT", "Jet_TauTagOSEta", "Jet_TauTagOSPhi"});
+  fd.Define("TauJetInvMassWithNeutrino", LFuncs::inv_mass_ml, {"Jet_TauTagNeutrinoPT", "Jet_TauTagOSPhi", "Jet_TauTagOSEta"});
+  
+  //FILTERS
+  // fd.Filter(SC::opp_sign, {"Jet_TauTagCharge"}, "OSCut"); // exists
+  fd.Filter(SC::met_angle_diff_fine, {"AngleBetweenMET"}, "METbetweenJets2E-6"); // exists
+  fd.Filter(SC::met_g_30, {"MissingET.MET"}, "MetG30"); // exists
+  fd.Filter(SC::num_jet_4, {"Jet_Num"}, "NumJetG4"); // exists
+  fd.Filter(SC::tau_pt_cut, {"Jet_TauTagOSPT"}, "JetTauTagG25"); // exists
+  fd.Filter(SC::delta_phi_2, {"TauTagJetDeltaPhi"}, "DeltaPhiL2"); // exists
+  fd.Filter(SC::lep_pt_l_25, {"Lep_PT"}, "LepPTL25"); // exists
+  // fd.Filter(SC::delta_phi_1p2, {"TauTagJetDeltaPhi"}, "DeltaPhi1p2");
+
+}
+
 void DataBase::TruthAnalysis(DataStructs::FrameAndData& fd){
   // truth analysis was all about matching the generator level particles to the jets and calculating the relevant quantities such
   // as the Delta R the Delta Phi and inv mass with and without neutrinos
@@ -307,7 +336,7 @@ void GeneralAnalyser()
   // Loading Info
   string mode{"Delphes"};
   string cluster_mode{"cluster"};
-  vector<string> analysis_modes{"ppzee", "ppzmumu", "ppztata", "ppzttee_exh", "ppzttmumu_exh", "ppztttata_exh"};
+  vector<string> analysis_modes{"RecoLevel", "RecoOSLevel"};
   string weighting{"Raw"};
   for(auto analysis_mode : analysis_modes){
     cout<<"\n"<<analysis_mode<<" Analysis\n\n";

@@ -6,10 +6,8 @@
 #include<iostream>
 #include<memory>
 #include<chrono>
-#include<future>
-#include<THStack.h>
-#include<TH2D.h>
-#include<TLegend.h>
+#include <future> // for parallel execution
+
 
 #include"DataStructures.h"
 #include"LFuncs.h"
@@ -23,11 +21,19 @@ using std::cout;
 
 namespace BackEnd
 {
-  // [Previous functions remain unchanged - load_files, initial_cut, etc.]
   vector<string> load_files(string& analysis_mode, string& cluster_mode)
   {
     vector<string> files{};
     string file{};
+    // std::ifstream open_files{"OpenFiles.txt"};
+    // string open_files{}
+    // if(std::filesystem::exists("/gluster/data/atlas/jdombrowski/DATA/" + analysis_mode + ".root")){
+      // exists = true;
+      // return {"/gluster/data/atlas/jdombrowski/DATA/" + analysis_mode + ".root"};
+    // }
+
+
+    // while(getline(open_files, file))
     for(auto file :  DataBase::database[analysis_mode].ifiles)
     {
       size_t delimiter{file.find(",")};
@@ -36,25 +42,39 @@ namespace BackEnd
     }
     return files;
   }
-  
   void initial_cut(FrameAndData& fd, vector<DataStructs::SelectionCut>& selcuts){
     for(auto sel_cut : selcuts){
       fd.Filter(sel_cut.selection_cut, sel_cut.variables, sel_cut.variables[0]);
     }
   }
+  // void save_histograms(string outputFileName, vector<ROOT::RDF::RResultPtr<TH1D>>& histograms, vector<HistInfo>& hist_info)
+  // {
+    // std::stringstream directory{}; directory << "/gluster/data/atlas/jdombrowski/Histograms/" << outputFileName;
+    // Save histograms
+    // std::filesystem::create_directory(directory.str());
+    // map<int, std::unique_ptr<TCanvas>> cs{};
+    // for(int i{0}; i < histograms.size(); i++)
+    // {
+      // cs[i] = std::make_unique<TCanvas>();
+      // cout<<"Drawing...\n";
+      // std::stringstream x_title{}; x_title << hist_info[i].x_axis << " (" << hist_info[i].units << ")";
+      // histograms[i]->GetXaxis()->SetTitle(x_title.str().c_str()); histograms[i]->GetYaxis()->SetTitle("Events");
+      // histograms[i]->GetXaxis()->CenterTitle(); histograms[i]->GetYaxis()->CenterTitle();
+      // histograms[i]->Draw();
+    // }
+    // cout<<"Saving...\n";
+    // for(int i{0}; i < histograms.size(); i++){
+      // std::stringstream file_name{}; file_name << directory.str() << "/" << hist_info[i].name << ".png";
+      // cs[i]->Print(file_name.str().c_str());
+    // }
+  // }
+  // gptr  code 
 
-  // Structure to hold different histogram types
-  struct HistogramCollection {
-    vector<ROOT::RDF::RResultPtr<TH1D>> hist1d;
-    vector<ROOT::RDF::RResultPtr<TH2D>> hist2d;
-    vector<vector<ROOT::RDF::RResultPtr<TH1D>>> stacked_hists; // Each element is a vector of histograms for one stack
-    vector<ROOT::RDF::RResultPtr<TH1D>> data_hists; // Data histograms to overlay as crosses
-  };
+void save_histograms(std::string outputFileName, std::vector<ROOT::RDF::RResultPtr<TH1D>>& histograms,
+    const std::vector<HistInfo>& hist_info)
+{
+    // Enable multi-threading (all available cores)
 
-  void save_histograms_extended(std::string outputFileName, 
-                                 HistogramCollection& hists,
-                                 const std::vector<HistInfo>& hist_info)
-  {
     // Output ROOT file
     std::filesystem::path dir = "/gluster/data/atlas/jdombrowski/Histograms";
     std::filesystem::create_directories(dir);
@@ -63,178 +83,45 @@ namespace BackEnd
 
     auto start = std::chrono::high_resolution_clock::now();
     cout << "Start: \n";
-    
-    // Materialize all 1D histograms
-    for (auto& hptr : hists.hist1d) {
-        hptr.GetValue();
-    }
-    
-    // Materialize all 2D histograms
-    for (auto& hptr : hists.hist2d) {
-        hptr.GetValue();
-    }
-    
-    // Materialize all stacked histograms
-    for (auto& stack : hists.stacked_hists) {
-        for (auto& hptr : stack) {
-            hptr.GetValue();
-        }
-    }
-    
-    // Materialize all data histograms
-    for (auto& hptr : hists.data_hists) {
+    // Materialize all histograms (compute them in parallel) 
+    for (auto& hptr : histograms) {
         hptr.GetValue();
     }
 
     auto mid = std::chrono::high_resolution_clock::now();
     cout << "Mid: " << std::chrono::duration<double>(mid-start).count() << "\n";
-    out_file.cd();
+    out_file.cd(); // Make sure we're writing to the file
 
-    // Write histograms based on their mode
-    size_t idx_1d = 0;
-    size_t idx_2d = 0;
-    size_t idx_stacked = 0;
-    size_t idx_data = 0;
-    
-    for (size_t i = 0; i < hist_info.size(); ++i) {
-        const auto& h = hist_info[i];
-        
-        if (h.mode == 0) {
-            // Normal 1D histogram
-            TH1D* hist = hists.hist1d[idx_1d].GetPtr();
-            hist->SetName(h.name.c_str());
-            hist->GetXaxis()->SetTitle((h.x_axis + " (" + h.units + ")").c_str());
-            hist->GetYaxis()->SetTitle("Events");
-            hist->Write(h.name.c_str());
-            idx_1d++;
-        } 
-        else if (h.mode == 1) {
-            // Stacked histogram
-            THStack* stack = new THStack(h.name.c_str(), h.name.c_str());
-            TLegend* legend = new TLegend(0.7, 0.7, 0.9, 0.9);
-            
-            // Define colors for stacking (you can customize these)
-            const int colors[] = {kRed, kBlue, kGreen+2, kOrange, kMagenta, kCyan, kYellow+2, kViolet};
-            const int num_colors = 8;
-            
-            // Determine starting index based on data_vs_mc flag
-            size_t start_idx = h.data_vs_mc ? 1 : 0;
-            
-            // Add MC histograms to stack
-            for (size_t j = start_idx; j < hists.stacked_hists[idx_stacked].size(); ++j) {
-                TH1D* hist = hists.stacked_hists[idx_stacked][j].GetPtr();
-                string hist_name = h.name + "_" + h.columns[j];
-                hist->SetName(hist_name.c_str());
-                int color_idx = h.data_vs_mc ? (j - 1) : j; // Adjust color index if first is data
-                hist->SetFillColor(colors[color_idx % num_colors]);
-                hist->SetLineColor(colors[color_idx % num_colors]);
-                stack->Add(hist);
-                legend->AddEntry(hist, h.columns[j].c_str(), "f");
-                hist->Write(); // Write individual histograms as well
-            }
-            
-            stack->Write(h.name.c_str());
-            
-            // Handle data histogram if data_vs_mc is true
-            TH1D* data_hist = nullptr;
-            if (h.data_vs_mc) {
-                data_hist = hists.data_hists[idx_data].GetPtr();
-                string data_hist_name = h.name + "_data";
-                data_hist->SetName(data_hist_name.c_str());
-                data_hist->SetMarkerStyle(20); // Filled circle
-                data_hist->SetMarkerSize(0.8);
-                data_hist->SetMarkerColor(kBlack);
-                data_hist->SetLineColor(kBlack);
-                legend->AddEntry(data_hist, h.columns[0].c_str(), "p"); // "p" for points
-                data_hist->Write();
-                idx_data++;
-            }
-            
-            legend->Write((h.name + "_legend").c_str());
-            
-            // Create and write a canvas with the stack and data drawn
-            TCanvas* c = new TCanvas((h.name + "_canvas").c_str(), h.name.c_str(), 800, 600);
-            
-            // Draw stack first
-            stack->Draw("HIST");
-            stack->GetXaxis()->SetTitle((h.x_axis + " (" + h.units + ")").c_str());
-            stack->GetYaxis()->SetTitle("Events");
-            
-            // Overlay data as points with error bars if present
-            if (h.data_vs_mc && data_hist) {
-                data_hist->Draw("E SAME"); // E for error bars, SAME to overlay
-            }
-            
-            legend->Draw();
-            c->Write();
-            delete c;
-            
-            idx_stacked++;
-        }
-        else if (h.mode == 2) {
-            // 2D histogram
-            TH2D* hist = hists.hist2d[idx_2d].GetPtr();
-            hist->SetName(h.name.c_str());
-            hist->GetXaxis()->SetTitle((h.x_axis + " (" + h.units + ")").c_str());
-            hist->GetYaxis()->SetTitle((h.y_axis + " (" + h.units_y + ")").c_str());
-            hist->GetZaxis()->SetTitle("Events");
-            hist->Write(h.name.c_str());
-            idx_2d++;
-        }
+    // Configure and write
+    for (size_t i = 0; i < histograms.size(); ++i) {
+        TH1D* h = histograms[i].GetPtr();
+        h->SetName(hist_info[i].name.c_str());
+        h->GetXaxis()->SetTitle((hist_info[i].x_axis + " (" + hist_info[i].units + ")").c_str());
+        h->GetYaxis()->SetTitle("Events");
+        h->Write(hist_info[i].name.c_str()); // Specify name in Write()
     }
-    
     auto end = std::chrono::high_resolution_clock::now();
+
     cout << "end: " << std::chrono::duration<double>(end-mid).count() << "\n";
     out_file.Close();
-    
     std::cout << "Computation: " 
-              << std::chrono::duration<double>(mid-start).count() << "s\n";
+          << std::chrono::duration<double>(mid-start).count() << "s\n";
     std::cout << "Writing: " 
-              << std::chrono::duration<double>(end-mid).count() << "s\n";
-    std::cout << "Saved " << (idx_1d + idx_2d + idx_stacked) 
-              << " histograms to " << file_path << std::endl;
-  }
+          << std::chrono::duration<double>(end-mid).count() << "s\n";
+    std::cout << "Saved " << histograms.size() << " histograms to " << file_path << std::endl;
+}
+
 
   void save_hist_info(string outputFileName, const vector<HistInfo>& histograms, string& cluster_mode){
     ROOT::EnableImplicitMT();
-    std::stringstream complete_file_name{}; 
-    complete_file_name << DataBase::pre_path.at(cluster_mode) 
-                       << "/gluster/data/atlas/jdombrowski/HistogramInfo/" 
-                       << outputFileName << ".txt";
+    std::stringstream complete_file_name{}; complete_file_name << DataBase::pre_path.at(cluster_mode) << "/gluster/data/atlas/jdombrowski/HistogramInfo/" << outputFileName << ".txt";
     std::ofstream histograms_file{complete_file_name.str()};
     std::stringstream save_stringstream{};
     save_stringstream << "{";
-    
     for(auto h : histograms)
     {
-      save_stringstream << "{" << h.name << ", " << h.x_axis << ", ";
-      
-      // Save column info based on mode
-      if (h.mode == 0) {
-        save_stringstream << h.columns[0];
-      } else if (h.mode == 1) {
-        save_stringstream << "[";
-        for (size_t i = 0; i < h.columns.size(); ++i) {
-          save_stringstream << h.columns[i];
-          if (i < h.columns.size() - 1) save_stringstream << ";";
-        }
-        save_stringstream << "]";
-      } else if (h.mode == 2) {
-        save_stringstream << h.columns[0] << ";" << h.columns[1];
-      }
-      
-      save_stringstream << ", " << h.nbins << ", " << h.lbound << ", " 
-                       << h.ubound << ", " << h.units << ", " 
-                       << h.take_point_five << ", mode=" << h.mode;
-      
-      if (h.mode == 2) {
-        save_stringstream << ", " << h.y_axis << ", " << h.nbins_y << ", " 
-                         << h.lbound_y << ", " << h.ubound_y << ", " << h.units_y;
-      }
-      
-      save_stringstream << "}, ";
+      save_stringstream << "{" << h.name << ", " << h.x_axis << ", " << h.columns[0] << ", " << h.nbins << ", " << h.lbound << ", " << h.ubound << ", " << h.units << ", " << h.take_point_five << "}, ";
     }
-    
     string save_string{save_stringstream.str()};
     save_string[save_string.size()-2] = '}';
     histograms_file << save_string;
@@ -242,117 +129,36 @@ namespace BackEnd
   }
 
   void plot(const string& outputFileName, FrameAndData& fd, 
-            const vector<HistInfo>& his, const string& weighting) {
-    if (his.empty()) return;
-    
-    HistogramCollection hists;
-    
-    // Book all histograms based on mode
+          const vector<HistInfo>& his, const string& weighting) {
+    if (his.empty()) return;  // Early exit
+    vector<ROOT::RDF::RResultPtr<TH1D>> histograms;
+    histograms.reserve(his.size());  // Pre-allocate
+    // Book all histograms in one pass
     for (const auto& h : his) {
-        double lower = h.lbound - 0.5 * h.take_point_five;
-        double upper = h.ubound - 0.5 * h.take_point_five;
-        
         if (h.mode == 0) {
-            // Normal 1D histogram
-            hists.hist1d.push_back(
+            double lower = h.lbound - 0.5 * h.take_point_five;
+            double upper = h.ubound - 0.5 * h.take_point_five;
+            
+            histograms.push_back(
                 fd.Histo1D(h.name.c_str(), h.name.c_str(), h.nbins, lower, upper, h.columns[0].c_str())
             );
-        } 
-        else if (h.mode == 1) {
-            // Stacked histogram - create one histogram per column
-            if (h.columns.empty()) {
-                cout << "Warning: Stacked histogram '" << h.name 
-                     << "' has no columns specified. Skipping.\n";
-                continue;
-            }
-            
-            if (h.data_vs_mc) {
-                // First column is data (not stacked)
-                string data_hist_name = h.name + "_data_component";
-                hists.data_hists.push_back(
-                    fd.Histo1D(data_hist_name.c_str(), data_hist_name.c_str(),
-                              h.nbins, lower, upper, h.columns[0].c_str())
-                );
-                
-                // Remaining columns are MC (stacked)
-                vector<ROOT::RDF::RResultPtr<TH1D>> stack_histograms;
-                for (size_t i = 0; i < h.columns.size(); ++i) {
-                    string hist_name = h.name + "_component_" + std::to_string(i);
-                    stack_histograms.push_back(
-                        fd.Histo1D(hist_name.c_str(), hist_name.c_str(), 
-                                  h.nbins, lower, upper, h.columns[i].c_str())
-                    );
-                }
-                hists.stacked_hists.push_back(stack_histograms);
-            } else {
-                // All columns are stacked
-                vector<ROOT::RDF::RResultPtr<TH1D>> stack_histograms;
-                for (size_t i = 0; i < h.columns.size(); ++i) {
-                    string hist_name = h.name + "_component_" + std::to_string(i);
-                    stack_histograms.push_back(
-                        fd.Histo1D(hist_name.c_str(), hist_name.c_str(), 
-                                  h.nbins, lower, upper, h.columns[i].c_str())
-                    );
-                }
-                hists.stacked_hists.push_back(stack_histograms);
-            }
-        }
-        else if (h.mode == 2) {
-            // 2D histogram
-            if (h.columns.size() < 2) {
-                cout << "Warning: 2D histogram '" << h.name 
-                     << "' requires 2 columns. Skipping.\n";
-                continue;
-            }
-            
-            double lower_y = h.lbound_y;
-            double upper_y = h.ubound_y;
-            
-            hists.hist2d.push_back(
-                fd.Histo2D(h.name.c_str(), h.name.c_str(),
-                          h.nbins, lower, upper,
-                          h.nbins_y, lower_y, upper_y,
-                          h.columns[0].c_str(), h.columns[1].c_str())
-            );
         }
     }
-    
-    // Trigger computation in parallel
-    cout << "Computing " << (hists.hist1d.size() + hists.hist2d.size() + hists.stacked_hists.size()) 
-         << " histogram(s)..." << endl;
-    
-    // Apply scaling to 1D histograms
+    // Trigger computation in parallel (single event loop)
+    cout << "Computing " << histograms.size() << " histograms..." << endl;
+    for (auto& hptr : histograms) {
+        hptr.GetValue();  // Materialize all in parallel
+    }
+    // Apply scaling
     double scale_factor = DataBase::weighting.at(weighting);
-    for (auto& hptr : hists.hist1d) {
-        hptr.GetValue();
-        hptr->Scale(scale_factor);
-    }
-    
-    // Apply scaling to stacked histograms
-    for (auto& stack : hists.stacked_hists) {
-        for (auto& hptr : stack) {
-            hptr.GetValue();
-            hptr->Scale(scale_factor);
-        }
-    }
-    
-    // Apply scaling to 2D histograms
-    for (auto& hptr : hists.hist2d) {
-        hptr.GetValue();
-        hptr->Scale(scale_factor);
-    }
-    
-    // Apply scaling to data histograms
-    for (auto& hptr : hists.data_hists) {
-        hptr.GetValue();
+    for (auto& hptr : histograms) {
         hptr->Scale(scale_factor);
     }
     
     // Save to file
-    save_histograms_extended(weighting + "_" + outputFileName, hists, his);
-  }
+    save_histograms(weighting + "_" + outputFileName, histograms, his);
+}
 
-  // [Rest of the pre_process_columns and other functions remain unchanged]
   void pre_process_columns(FrameAndData& fd){
     // Constants To Pass
     fd.Define("PARTICLEONE", LFuncs::create_one, {"Particle.Mass"});
@@ -628,7 +434,6 @@ namespace BackEnd
     // forces root to compute all the defines here and now.
     auto dummy = fd.node.Count();
   }
-  
   template<typename T> void serialise_integral(vector<DataStructs::Integral<T>>& integral, string fname){
     std::stringstream ss{}; ss<<"Value,Integral\n";
     for(auto event : integral){
@@ -639,10 +444,13 @@ namespace BackEnd
     outfile<<ss.str();
     outfile.close();
   }
-  
   void cache_columns(FrameAndData& fd, vector<string> cached_columns){
+    // auto cached_columns = {"var1", "var2", "var3", /* all columns you need */};
+
     cout << "Caching processed data..." << endl;
     fd.node.Cache(cached_columns);
+
+    // Now work with the cached file (much faster!)
   }
 };
 

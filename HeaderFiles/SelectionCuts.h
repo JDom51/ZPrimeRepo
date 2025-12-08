@@ -72,6 +72,23 @@ namespace SC
   bool jet_number_cut(int size){
     return size > 5;
   }
+  bool num_jet_4(int size){
+    return size > 4;
+  }
+  bool tau_pt_cut(RV<Float_t> tau_pt){
+    bool result{true};
+    for(auto pt : tau_pt){
+      result = result && (pt > 25);
+    }
+    return result;
+  }
+  bool lep_pt_l_25(RV<Float_t> lep_pt){
+    bool result{true};
+    for(auto pt: lep_pt){
+      result = result && (pt < 20);
+    }
+    return result;
+  }
   bool  deltaRcut0p2(ROOT::VecOps::RVec<Float_t> DeltaR){
     bool result{DeltaR.size() != 0};
     for(auto DR : DeltaR){
