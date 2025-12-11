@@ -1,5 +1,5 @@
-#ifndef SC
-#define SC
+#ifndef SC_
+#define SC_
 namespace SC
 {
   // Broad selection cut is defined as a basic cut needed to start analysis.

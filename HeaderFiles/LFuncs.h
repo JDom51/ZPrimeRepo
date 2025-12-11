@@ -384,6 +384,7 @@ namespace LFuncs
   Float_t calc_delta_r(RV<Float_t> phi, RV<Float_t> eta){
     return sqrt((phi[0] - phi[1]) * (phi[0] - phi[1]) + (eta[0] - eta[1]) * (eta[0] - eta[1]));
   }
+  
   RV<unsigned int> get_os_tau_indicies(RV<Float_t> tau_pt, RV<int> tau_charge){
     map<int, unsigned int> chosen{{1, -1}, {-1, -1}};
     map<int, Float_t> chosen_pt{{1, 0}, {-1, 0}};
@@ -396,24 +397,7 @@ namespace LFuncs
     }
     return indicies;
   } 
-  // RV<vector<Float_t>> get_delta_r(RV<Float_t> delta_phi_jet, RV<Float_t> delta_eta_jet, RV<Float_t> delta_phi_tau, RV<Float_t> delta_eta_tau){
-  //   RV<vector<Float_t>> delta_r{};
-  //   for(int i{0}; i < delta_phi_tau.size(); i++){
-  //     vector<Float_t> row{};
-  //     for(int j{0}; j < delta_phi_jet.size(); j++){
-  //       row.push_back(calc_delta_r_(delta_phi_tau[i], delta_eta_tau[i], delta_phi_jet[j], delta_eta_jet[j]));
-  //     }
-  //     delta_r.push_back(row);
-  //   }
-  //   // gets a table of delta rs tau1 : {j1 j2 .. jn}
-  //   //                          tau2 : {j1 j2 .. jn} etc.
-  //   return delta_r;
-  // }
-  // template<typename T> void printing(vector<T> v){
-  //   for(auto vi : v){
-  //     cout << vi << ", ";
-  //   }
-  // }
+
   RV<vector<Float_t>> get_delta_r(RV<Float_t> phi_jet, RV<Float_t> eta_jet, 
                                       RV<Float_t> phi_tau, RV<Float_t> eta_tau){
     RV<vector<Float_t>> result;
@@ -433,14 +417,13 @@ namespace LFuncs
     
     return result;
   }
-  RV<vector<unsigned int>> get_truth_match(RV<vector<Float_t>> delta_rs){
+RV<vector<unsigned int>> get_truth_match(RV<vector<Float_t>> delta_rs){
     RV<vector<unsigned int>> truth_match;
     truth_match.reserve(delta_rs.size());
     
     for(size_t i = 0; i < delta_rs.size(); ++i){
         const auto& dr_row = delta_rs[i];
         size_t n = dr_row.size();
-        
         if(n == 0) {
             truth_match.emplace_back();
             continue;
@@ -449,67 +432,81 @@ namespace LFuncs
         // Pre-allocate with zeros
         vector<unsigned int> row(n, 0);
         
-        // Find minimum
-        auto min_it = std::min_element(dr_row.begin(), dr_row.end());
-        int min_idx = std::distance(dr_row.begin(), min_it);
+        // Create index array for sorting
+        vector<size_t> indices(n);
+        std::iota(indices.begin(), indices.end(), 0);
+        
+        // Sort indices by Delta R values (only need first 2)
+        size_t num_to_sort = std::min(size_t(2), n);
+        std::partial_sort(indices.begin(), 
+                         indices.begin() + num_to_sort, 
+                         indices.end(),
+                         [&dr_row](size_t i1, size_t i2) {
+                             return dr_row[i1] < dr_row[i2];
+                         });
         
         // Mark best match
-        row[min_idx] = 2;
+        row[indices[0]] = 2;
+        
+        // Mark second best match if available
+        if(n > 1){
+            row[indices[1]] = 1;
+        }
         
         truth_match.push_back(std::move(row));
     }
-    
     return truth_match;
   }
-  RV<unsigned int> get_truth_match_indicies(RV<vector<unsigned int>> truth_match){
-    vector<unsigned int> indices;
-    indices.reserve(truth_match.size());
+RV<unsigned int> get_truth_match_indicies(RV<vector<unsigned int>> truth_match, 
+                                           RV<vector<Float_t>> delta_rs){
+    struct Candidate {
+        size_t tau_idx;
+        size_t jet_idx;
+        Float_t delta_r;
+        int priority; // 2 for primary, 1 for backup
+    };
     
+    vector<Candidate> candidates;
+    
+    // Collect all candidates
     for(size_t i = 0; i < truth_match.size(); ++i){
-        const auto& row = truth_match[i];
-        auto it = std::find(row.begin(), row.end(), 2);
-        if(it != row.end()){
-            indices.push_back(std::distance(row.begin(), it));
+        for(size_t j = 0; j < truth_match[i].size(); ++j){
+            if(truth_match[i][j] > 0){
+                candidates.push_back({i, j, delta_rs[i][j], (int)truth_match[i][j]});
+            }
+        }
+    }
+    
+    // Sort: primary first, then by smallest Delta R
+    std::sort(candidates.begin(), candidates.end(), 
+              [](const Candidate& a, const Candidate& b){
+                  if(a.priority != b.priority) return a.priority > b.priority;
+                  return a.delta_r < b.delta_r;
+              });
+    
+    // Greedy assignment
+    set<size_t> used_jets, used_taus;
+    map<size_t, size_t> tau_to_jet;
+    
+    for(const auto& cand : candidates){
+        if(!used_taus.count(cand.tau_idx) && !used_jets.count(cand.jet_idx)){
+            tau_to_jet[cand.tau_idx] = cand.jet_idx;
+            used_taus.insert(cand.tau_idx);
+            used_jets.insert(cand.jet_idx);
+        }
+    }
+    
+    // Return in tau order
+    vector<unsigned int> indices;
+    for(size_t i = 0; i < truth_match.size(); ++i){
+        if(tau_to_jet.count(i)){
+            indices.push_back(tau_to_jet[i]);
         }
     }
     
     return indices;
-  }
-  // RV<vector<unsigned int>> get_truth_match(RV<vector<Float_t>> delta_rs){
-  //   RV<vector<unsigned int>> truth_match{};
-  //   // cout << "Iteration\n";
-  //   for(int i{0}; i < delta_rs.size(); i++){
-  //     vector<unsigned int> row{};
-  //     Float_t curr_mini{1000};
-  //     int curr_mini_ind{-1};
-  //     for(int j{0}; j < delta_rs[i].size(); j++){
-  //       // if(delta_rs[i][j] < 0.3){
-  //         // row.push_back(1);
-  //         if(delta_rs[i][j] < curr_mini){
-  //           row.push_back(1);
-  //           curr_mini_ind = j;
-  //           curr_mini = delta_rs[i][j];
-  //         // }
-  //       } else {
-  //         row.push_back(0);
-  //       }
-  //     }
-  //     if(curr_mini_ind != -1){row[curr_mini_ind] = 2;}
-  //     // cout << "size: "<< delta_rs[i].size() <<" delta_rs "; printing(delta_rs[i]); cout << "\n";
-  //     // cout<<"row "; printing(row); cout <<"\n";
-  //     truth_match.push_back(row);
-  //   }
-  // return truth_match;
-  // }
-  // RV<unsigned int> get_truth_match_indicies(RV<vector<unsigned int>> truth_match){
-  //   vector<unsigned int> indicies{};
-  //   for(int i{0}; i < truth_match.size(); i++){
-  //     for(int j{0}; j < truth_match[i].size(); j++){
-  //       if(truth_match[i][j] == 2){indicies.push_back(j);}
-  //     }
-  //   }
-  //   return indicies;
-  // }
+}
+
 
   RV<Float_t> get_truth_match_indicies_dr(RV<unsigned int> tm_indicies, RV<vector<Float_t>> drs){
     RV<Float_t> sel_drs{};

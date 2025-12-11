@@ -13,11 +13,13 @@
 #include"HeaderFiles/DataStructures.h"
 #include"HeaderFiles/SelCutAlgo.h"
 #include"HeaderFiles/SelectionCuts.h"
+#include"HeaderFiles/SelCutsDict.h"
 
 using std::cout;
 using std::string;
 using std::vector;
 using std::map;
+using DataStructs::AnalysisCut;
 
 gStyle->SetOptStat(111111);
 ROOT::EnableImplicitMT();
@@ -145,52 +147,6 @@ void DataBase::SelectionCutAnalysis(DataStructs::FrameAndData& fd){
   fd.Define("TauJetInvMass", LFuncs::inv_mass_ml, {"Jet_DTauTagPT", "Jet_DTauTagEta", "Jet_DTauTagPhi"});
   fd.Define("TauJetInvMassWithNeutrino", LFuncs::inv_mass_ml, {"Jet_DTauTagNeutrinoPT", "Jet_DTauTagPhi", "Jet_DTauTagEta"});
   fd.Define("GenTauInvMass", LFuncs::inv_mass_ml, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
-
-  // Truth Match to Truth MET
-  // fd.Define("TruthNeutrinoPT2", LFuncs::get_col_neutrinopt2, {"TruthMissingET_MET", "Jet_DTauTagPhi", "TruthMissingET_Phi"});
-  // fd.Define("TruthNeutrinoPT1", LFuncs::get_col_neutrinopt1, {"TruthMissingET_MET", "Jet_DTauTagPhi", "TruthMissingET_Phi", "TruthNeutrinoPT2"});
-  // fd.Define("Jet_DTauTagTruthNeutrinoPT", LFuncs::add_col_pt, {"Jet_DTauTagPT", "TruthNeutrinoPT1", "TruthNeutrinoPT2"});
-  // fd.Define("AngleBetweenTruthMET", LFuncs::met_jet_ang, {"TruthMissingET_Phi", "Jet_DTauTagPhi"});
-  // fd.Define("TauJetInvMassWithTruthNeutrino", LFuncs::inv_mass_ml, {"Jet_DTauTagTruthNeutrinoPT", "Jet_DTauTagPhi", "Jet_DTauTagEta"});
-  // fd.Define("DifferenceBetweenTruthRecoMET", LFuncs::get_difference_between_vectors, {"TruthMissingET_MET", "MissingET.MET"});
-  // fd.Define("NormalisedDifferenceBetweenTruthRecoMET", LFuncs::get_normalised_by_v1_difference_between_vectors, {"TruthMissingET_MET", "MissingET.MET"});
-  // fd.Define("TauTagDeltaR", LFuncs::get_DeltaR, {"Jet_TauTagPhi", "Jet_TauTagEta"});
-  // TRUTH JET DEFINITIONS.
-  // fd.Define("TruthMatchDeltaPhiTRUTHJET", LFuncs::get_delta_phi, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchPhi"});
-  // fd.Define("AngleBetweenMETTRUTHJET", LFuncs::met_jet_ang, {"MissingET.Phi", "Jet_TruthTauMatchPhi"});
-  // fd.Define("Jet_TruthTauMatchNeutrinoPT", LFuncs::add_col_pt, {"Jet_TruthTauMatchPT", "NeutrinoPT1", "NeutrinoPT2"});
-  // fd.Define("TauJetInvMassTRUTHJET", LFuncs::inv_mass_ml, {"Jet_TruthTauMatchPT", "Jet_TruthTauMatchEta", "Jet_TruthTauMatchPhi"});
-  // fd.Define("TauJetInvMassWithNeutrinoTRUTHJET", LFuncs::inv_mass_ml, {"Jet_TruthTauMatchNeutrinoPT", "Jet_TruthTauMatchPhi", "Jet_TruthTauMatchEta"});
-
-
-  
-  // fd.Filter(SC::met_angle_diff, {"AngleBetweenTruthMET"}, "TruthMETbetweenJets0p025");
-  // fd.Filter(SC::met_angle_diff_fine, {"AngleBetweenTruthMET"}, "TruthMETbetweenJets2E-6");
-
-  // fd.Filter(SC::met_angle_diff, {"AngleBetweenMET"}, "METbetweenJets0p025");
-  // fd.Filter(SC::size_0, {"Electron.PT", "Muon.PT"}, "NoLep");
-  // fd.Filter(jetbnum, {"Jet_BNum"}, "2BJets");
-  fd.Filter(SC::opp_sign, {"Jet_DTauTagCharge"}, "OSCut");
-  // fd.Filter(SC::jet_number_cut, {"Jet_Num"}, "g7jet"); 
-  fd.Filter(SC::met_angle_diff_fine, {"AngleBetweenMET"}, "METbetweenJets2E-6");
-  
-  // fd.Filter(SC::norm_truth_reco_diff_cut, {"NormalisedDifferenceBetweenTruthRecoMET"}, "METNormDiff0p3");
-  fd.Filter(SC::deltaRcut0p3, {"TruthMatchedDeltaR"}, "DeltaRCut0p3");
-  // fd.Filter(SC::truth_and_fake_cut, {"TruthMatchedDeltaR"}, "1Truth1Fake");
-  // fd.Filter(SC::all_fake, {"TruthMatchedDeltaR"}, "allFake");
-  // fd.Filter(SC::pt_tau_cut, {"Jet_DTauTagPT"}, "jetptg20");
-  // fd.Filter(SC::gen_inv_mass_g20, {"GenTauInvMass"}, "GenTauInvMassG20");
-  // fd.Filter(SC::deltaRcut0p2, {"DeltaRJetTauSel"}, "DeltaRCut0p2");
-  // fd.node.Foreach(print_neut, {"Tau_PT", "Tau_Status"});
-
-  // fd.Filter(SC::delta_phi_1, {"TruthMatchDeltaPhi"}, "DeltaPhi1");
-  // fd.Filter(SC::delta_phi_1p2, {"TruthMatchDeltaPhi"}, "DeltaPhi1p2");
-  // fd.Filter(SC::delta_phi_1p6, {"TruthMatchDeltaPhi"} , "DeltaPhi1p6");
-  fd.Filter(SC::delta_phi_2, {"TruthMatchDeltaPhi"}, "DeltaPhi2");
-  // fd.frame.Foreach([](ROOT::VecOps::RVec<Float_t> gen_tau_pt, ROOT::VecOps::RVec<Float_t> reco_tau_pt){cout<<gen_tau_pt<<" "<<reco_tau_pt<<"\n";}, {"Tau_PT","Jet_DTauTagNeutrinoPT"});
-  // vector<vector<Integral<Float_t>>> inout = SCAlgo::get_integral<Float_t>(fd, "TruthMatchDeltaPhi", "TauJetInvMassWithNeutrino", SC::y_lt_x_inout, {0, 3.2}, 10);
-  // BackEnd::serialise_integral(inout[0], "DeltaPhiIn" + fd.save_string);
-  // BackEnd::serialise_integral(inout[1], "DeltaPhiOut" + fd.save_string);
 }
 
 void DataBase::SemiLeptonicAnalysis(DataStructs::FrameAndData& fd){
@@ -308,7 +264,15 @@ void DataBase::MomentumTest(DataStructs::FrameAndData& fd){
   fd.Define("GenTauInvMass", LFuncs::inv_mass_ml, {"Tau_PT", "Tau_Phi", "Tau_Eta"});
 }
 
-void analysis_procedure(string analysis_mode, string mode, string weighting, string cluster_mode){
+
+void apply_cuts(FrameAndData& fd, vector<AnalysisCut>& analysis_cuts){
+
+  for(auto ac : analysis_cuts){
+    fd.Filter(sel_cuts, ac.cut_name, ac.columns, ac.name);
+  }
+}
+
+void analysis_procedure(string analysis_mode, string mode, string weighting, string cluster_mode, vector<AnalysisCut>& cut){
   
   vector<string> files = BackEnd::load_files(analysis_mode, cluster_mode);
   cout << "Analysis Mode: " << analysis_mode << "\nNumber of files Loaded: " <<files.size()<<"\n";
@@ -324,11 +288,27 @@ void analysis_procedure(string analysis_mode, string mode, string weighting, str
   // Analyse
   cout<<"Analysing\n";
   DataBase::database[analysis_mode].a_func(fd);
+  cout<<"SelectionCuts\n";
+  apply_cuts(fd, cut);
   cout<<"Plotting\n";
   BackEnd::plot(outputFileName + fd.save_string, fd, DataBase::database[analysis_mode].hists, weighting);
   BackEnd::save_hist_info(outputFileName, DataBase::database[analysis_mode].hists, cluster_mode);
 }
 
+AnalysisCut AC_os{"opp_sign", {"Jet_DTauTagCharge"}, "OSCut"};
+AnalysisCut AC_met_ang_diff{"met_angle_diff_fine", {"AngleBetweenMET"}, "METbetweenJets2E-6"};
+AnalysisCut AC_truthfake{"truth_and_fake", {"TruthMatchedDeltaR"}, "1Truth1Fake"};
+AnalysisCut AC_deltar0p3{"deltaR_0p3", {"TruthMatchedDeltaR"}, "DeltaRCut0p3"};
+AnalysisCut AC_dphi2{"delta_phi_2", {"TruthMatchDeltaPhi"}, "DeltaPhi2"};
+
+vector<vector<AnalysisCut>> AC_cuts ={
+  {AC_os},
+  {AC_os, AC_met_ang_diff},
+  {AC_os, AC_met_ang_diff, AC_truthfake},
+  {AC_os, AC_met_ang_diff, AC_truthfake, AC_dphi2},
+  {AC_os, AC_met_ang_diff, AC_deltar0p3},
+  {AC_os, AC_met_ang_diff, AC_deltar0p3, AC_dphi2},
+};
 
 
 void GeneralAnalyser()
@@ -336,10 +316,12 @@ void GeneralAnalyser()
   // Loading Info
   string mode{"Delphes"};
   string cluster_mode{"cluster"};
-  vector<string> analysis_modes{"RecoLevel", "RecoOSLevel"};
+  vector<string> analysis_modes{"SelectionCut"};
   string weighting{"Raw"};
   for(auto analysis_mode : analysis_modes){
-    cout<<"\n"<<analysis_mode<<" Analysis\n\n";
-    analysis_procedure(analysis_mode, mode, weighting, cluster_mode);
+    for(auto cut : AC_cuts){
+      cout<<"\n"<<analysis_mode<<" Analysis\n\n";
+      analysis_procedure(analysis_mode, mode, weighting, cluster_mode, cut);
+    }
   }
 }

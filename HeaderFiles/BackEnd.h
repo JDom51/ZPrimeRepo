@@ -451,7 +451,7 @@ namespace BackEnd
     // Delta R Tau
     fd.Define("DeltaRJetTau", LFuncs::get_delta_r, {"Jet_TauTagPhi", "Jet_TauTagEta", "Tau_Phi", "Tau_Eta"});
     fd.Define("TruthMatchTau", LFuncs::get_truth_match, {"DeltaRJetTau"});
-    fd.Define("TruthMatchIndicies", LFuncs::get_truth_match_indicies, {"TruthMatchTau"});
+    fd.Define("TruthMatchIndicies", LFuncs::get_truth_match_indicies, {"TruthMatchTau", "DeltaRJetTau"});
     fd.Define("TruthMatchedDeltaR", LFuncs::get_truth_match_indicies_dr, {"TruthMatchIndicies", "DeltaRJetTau"});
     fd.Define("DeltaR_Num", LFuncs::get_size<unsigned int>, {"TruthMatchIndicies"});
 

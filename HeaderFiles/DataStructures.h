@@ -4,6 +4,7 @@
 #include<string>
 #include<vector>
 #include<map>
+#include"SelCutsDict.h"
 
 using std::string;
 using std::vector;
@@ -12,39 +13,68 @@ using std::map;
 
 namespace DataStructs
 {
+  struct AnalysisCut{
+    string cut_name;
+    vector<string> columns;
+    string name;
+    AnalysisCut(string m_cut_name, vector<string> m_columns, string m_name) : cut_name{m_cut_name}, columns{m_columns}, name{m_name} {}
+  };
   struct FrameAndData
-  {
+{
     ROOT::RDataFrame frame;
     ROOT::RDF::RNode node;
     string save_string;
     
     FrameAndData(string mode, vector<string> files) : frame{mode, files}, node{frame}, save_string{} {}
     FrameAndData(ROOT::RDataFrame&& rdf) : frame{rdf}, node{frame} {}
+    
     ROOT::RDF::RResultPtr<TH1D> Histo1D(string hist_id, string hist_name, int nbins, double lbound, double ubound, string plotting_column)
     {
-      return node.Histo1D({hist_id.c_str(), hist_name.c_str(), nbins, lbound, ubound}, plotting_column);
+        return node.Histo1D({hist_id.c_str(), hist_name.c_str(), nbins, lbound, ubound}, plotting_column);
     }
+    
     ROOT::RDF::RResultPtr<TH2D> Histo2D(string hist_id, string hist_name, 
                                          int nbins_x, double lbound_x, double ubound_x,
                                          int nbins_y, double lbound_y, double ubound_y,
                                          string x_column, string y_column)
     {
-      return node.Histo2D({hist_id.c_str(), hist_name.c_str(), 
-                           nbins_x, lbound_x, ubound_x,
-                           nbins_y, lbound_y, ubound_y}, 
-                          x_column, y_column);
+        return node.Histo2D({hist_id.c_str(), hist_name.c_str(), 
+                            nbins_x, lbound_x, ubound_x,
+                            nbins_y, lbound_y, ubound_y}, 
+                           x_column, y_column);
     }
+    
     template<typename T>
     void Define(string column_name, T lambda_func, vector<string> var_names){
-      node = node.Define(column_name, lambda_func, var_names);
+        node = node.Define(column_name, lambda_func, var_names);
     }
-    template<typename Type> void Filter(Type func, vector<string> column_names, string cut_name)
+    
+    // Original Filter for regular functions
+    template<typename Type> 
+    void Filter(Type func, vector<string> column_names, string cut_name)
     {
-      node = node.Filter(func, column_names);
-      save_string += " " + cut_name;
-      cout<<save_string<<"\n";
+        node = node.Filter(func, column_names, cut_name);
+        save_string += " " + cut_name;
+        cout << save_string << "\n";
     }
-  };
+    
+    // Specialized Filter for GeneralSelectionCut (using cut map)
+   void Filter(const std::map<std::string, GeneralSelectionCut>& sel_cuts, 
+            const std::string& cut_key, 
+            const std::vector<std::string>& column_names,
+            const std::string& save_name)
+{
+    // We need to extract the actual std::function from the variant
+    // This requires visiting the variant to get the right type
+    std::visit([&](auto&& func) {
+        node = node.Filter(func, column_names, cut_key);
+    }, sel_cuts.at(cut_key).cut_function);
+    
+    save_string += " " + save_name;
+    cout << save_string << "\n";
+}
+    
+};
   
   struct HistInfo
   {
@@ -141,5 +171,8 @@ namespace DataStructs
     string fname;
     vector<HistInfo> hists;
   };
+
+
+
 };
 #endif
